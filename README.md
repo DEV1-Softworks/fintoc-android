@@ -31,9 +31,9 @@ flowchart LR
 | JDK to launch Gradle | 11 or newer (the build provisions a JDK 21 toolchain automatically) |
 | Android SDK Platform | 37 (`compileSdk`) |
 | Android Studio | A recent stable release that supports Android Gradle Plugin 9.4 |
-| Device or emulator | Android 9 (API 28) or newer, only needed for instrumented tests |
+| Device or emulator | Android 6.0 (API 23) or newer, only needed for instrumented tests |
 
-Supported on Android 9 (API 28) and newer. The SDK is compiled with `compileSdk 37`; because it depends on
+Supported on Android 6.0 (API 23) and newer. The SDK is compiled with `compileSdk 37`; because it depends on
 Jetpack Compose, host applications must compile against `compileSdk 37` too, or pin an older Compose BOM.
 
 ## Quick start

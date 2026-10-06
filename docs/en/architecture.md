@@ -88,7 +88,7 @@ immediately with a message explaining what to do.
 |---|---|---|
 | Kotlin | 2.4.20 | Current stable release. Android Gradle Plugin 9 ships Kotlin support built in, so no separate Kotlin plugin is applied. |
 | Android Gradle Plugin | 9.4.1 (requires Gradle 9.6.0) | Current stable release. |
-| `minSdk` | 28 (Android 9) | Kept from the project template. Lowering it is a one-line change in each module. |
+| `minSdk` | 23 (Android 6.0) | Lowest level Jetpack Compose supports, to reach as many devices as possible. Do not call APIs above API 23 (such as `java.time`) without a guard or desugaring. |
 | `compileSdk` | 37 | Required by Compose BOM 2026.09.00. |
 | `targetSdk` (sample app) | 36 | The level currently required by Google Play. |
 | Jetpack Compose | BOM 2026.09.00 | Compose-first UI. XML is only used where the platform requires it (manifest, window theme). |
