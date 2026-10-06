@@ -1,7 +1,6 @@
 package mx.dev1.fintoc.sdk.presentation.host
 
 import mx.dev1.fintoc.sdk.domain.widget.FintocWidgetOptions
-import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNotEquals
 import org.junit.Assert.assertNull
@@ -9,24 +8,21 @@ import org.junit.Test
 
 class FintocWidgetRequestsTest {
 
-    @After
-    fun clear() {
-        FintocWidgetRequests.clear()
-    }
+    private val requests = FintocWidgetRequests()
 
     private fun options(token: String) = FintocWidgetOptions.Payments(sessionToken = token)
 
     @Test
     fun `a registered request is found by its identifier`() {
-        val requestId = FintocWidgetRequests.register(options("cs_1"))
+        val requestId = requests.register(options("cs_1"))
 
-        assertEquals(options("cs_1"), FintocWidgetRequests.find(requestId))
+        assertEquals(options("cs_1"), requests.find(requestId))
     }
 
     @Test
     fun `identifiers are unique and hard to guess`() {
-        val first = FintocWidgetRequests.register(options("cs_1"))
-        val second = FintocWidgetRequests.register(options("cs_1"))
+        val first = requests.register(options("cs_1"))
+        val second = requests.register(options("cs_1"))
 
         assertNotEquals(first, second)
         assertEquals(36, first.length)
@@ -34,44 +30,44 @@ class FintocWidgetRequestsTest {
 
     @Test
     fun `an unknown identifier finds nothing`() {
-        assertNull(FintocWidgetRequests.find("not-a-request"))
+        assertNull(requests.find("not-a-request"))
     }
 
     @Test
     fun `a removed request is gone`() {
-        val requestId = FintocWidgetRequests.register(options("cs_1"))
+        val requestId = requests.register(options("cs_1"))
 
-        FintocWidgetRequests.remove(requestId)
+        requests.remove(requestId)
 
-        assertNull(FintocWidgetRequests.find(requestId))
+        assertNull(requests.find(requestId))
     }
 
     @Test
     fun `finding a request does not consume it, so a screen can be recreated`() {
-        val requestId = FintocWidgetRequests.register(options("cs_1"))
+        val requestId = requests.register(options("cs_1"))
 
-        FintocWidgetRequests.find(requestId)
+        requests.find(requestId)
 
-        assertEquals(options("cs_1"), FintocWidgetRequests.find(requestId))
+        assertEquals(options("cs_1"), requests.find(requestId))
     }
 
     @Test
     fun `only the latest few requests are kept`() {
-        val requestIds = (1..6).map { number -> FintocWidgetRequests.register(options("cs_$number")) }
+        val requestIds = (1..6).map { number -> requests.register(options("cs_$number")) }
 
-        assertNull(FintocWidgetRequests.find(requestIds[0]))
-        assertNull(FintocWidgetRequests.find(requestIds[1]))
+        assertNull(requests.find(requestIds[0]))
+        assertNull(requests.find(requestIds[1]))
         requestIds.drop(2).forEachIndexed { index, requestId ->
-            assertEquals(options("cs_${index + 3}"), FintocWidgetRequests.find(requestId))
+            assertEquals(options("cs_${index + 3}"), requests.find(requestId))
         }
     }
 
     @Test
     fun `clear forgets everything`() {
-        val requestId = FintocWidgetRequests.register(options("cs_1"))
+        val requestId = requests.register(options("cs_1"))
 
-        FintocWidgetRequests.clear()
+        requests.clear()
 
-        assertNull(FintocWidgetRequests.find(requestId))
+        assertNull(requests.find(requestId))
     }
 }

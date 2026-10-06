@@ -15,7 +15,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import mx.dev1.fintoc.sdk.FintocLanguage
 import mx.dev1.fintoc.sdk.domain.widget.FintocWidgetEvent
@@ -36,9 +35,9 @@ import mx.dev1.fintoc.sdk.presentation.localization.rememberFintocStrings
 internal fun FintocWidgetWebView(
     url: String,
     onEvent: (FintocWidgetEvent) -> Unit,
+    externalLinkLauncher: ExternalLinkLauncher,
     modifier: Modifier = Modifier,
     language: FintocLanguage? = null,
-    externalLinkLauncher: ExternalLinkLauncher = AndroidExternalLinkLauncher(LocalContext.current),
 ) {
     val strings = rememberFintocStrings(language)
     val latestOnEvent by rememberUpdatedState(onEvent)

@@ -5,7 +5,6 @@ import mx.dev1.fintoc.sdk.FintocConfiguration
 import org.koin.core.Koin
 import org.koin.core.KoinApplication
 import org.koin.dsl.koinApplication
-import org.koin.dsl.module
 
 /**
  * Owns the dependency graph of the SDK.
@@ -18,18 +17,14 @@ internal class FintocKoinContainer(
     configuration: FintocConfiguration,
 ) {
     private val koinApplication: KoinApplication = koinApplication {
-        modules(coreModule(applicationContext.applicationContext, configuration))
+        modules(coreModule(applicationContext.applicationContext, configuration), widgetModule())
     }
 
     val koin: Koin
         get() = koinApplication.koin
 
+    /** Releases everything the container owns, such as the session tokens of the screens that were prepared. */
     fun close() {
         koinApplication.close()
-    }
-
-    private fun coreModule(applicationContext: Context, configuration: FintocConfiguration) = module {
-        single<Context> { applicationContext }
-        single { configuration }
     }
 }

@@ -8,11 +8,11 @@ import mx.dev1.fintoc.sdk.domain.widget.FintocWidgetOptions
  *
  * The options hold session tokens, so they never travel inside an `Intent`: the intent only carries the random
  * identifier of an entry. An Activity that the system restores after the process died finds nothing here, and closes.
+ *
+ * It belongs to the SDK's Koin container, so [mx.dev1.fintoc.sdk.Fintoc.shutdown], or initializing the SDK again,
+ * forgets every token it held.
  */
-internal object FintocWidgetRequests {
-
-    /** Only the last few are kept, so a screen that was prepared but never opened cannot hold a token for long. */
-    private const val MAX_PENDING_REQUESTS = 4
+internal class FintocWidgetRequests {
 
     private val pending = LinkedHashMap<String, FintocWidgetOptions>()
 
@@ -37,5 +37,10 @@ internal object FintocWidgetRequests {
     @Synchronized
     fun clear() {
         pending.clear()
+    }
+
+    private companion object {
+        /** Only the last few are kept, so a screen that was prepared but never opened cannot hold a token for long. */
+        const val MAX_PENDING_REQUESTS = 4
     }
 }

@@ -48,4 +48,7 @@ public object Fintoc {
         }
         return currentContainer.koin
     }
+
+    /** Dependency graph of the SDK, or `null` when it is not initialized, for code that must not crash without it. */
+    internal fun koinOrNull(): Koin? = container?.koin
 }

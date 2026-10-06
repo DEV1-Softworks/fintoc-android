@@ -55,8 +55,9 @@ class FintocWidgetActivityTest {
     @After
     fun tearDown() {
         Fintoc.shutdown()
-        FintocWidgetRequests.clear()
     }
+
+    private fun pendingRequests(): FintocWidgetRequests = Fintoc.requireKoin().get()
 
     private fun initializeSdk(language: FintocLanguage?) {
         Fintoc.initialize(context, FintocConfiguration(publicKey = "pk_test_abc123", language = language))
@@ -97,6 +98,31 @@ class FintocWidgetActivityTest {
             .putExtra(FintocWidgetContract.EXTRA_REQUEST_ID, "request-from-a-dead-process")
 
         launchForResult(intent).use { scenario ->
+            assertEquals(Lifecycle.State.DESTROYED, scenario.state)
+            assertEquals(Activity.RESULT_CANCELED, scenario.result.resultCode)
+        }
+    }
+
+    @Test
+    fun `an intent prepared before the sdk was shut down no longer opens the widget`() {
+        val staleIntent = contract.createIntent(context, options)
+
+        Fintoc.shutdown()
+        initializeSdk(language = null)
+
+        launchForResult(staleIntent).use { scenario ->
+            assertEquals(Lifecycle.State.DESTROYED, scenario.state)
+            assertEquals(Activity.RESULT_CANCELED, scenario.result.resultCode)
+        }
+    }
+
+    @Test
+    fun `a screen restored where the host has not initialized the sdk closes instead of crashing`() {
+        val restoredIntent = contract.createIntent(context, options)
+
+        Fintoc.shutdown()
+
+        launchForResult(restoredIntent).use { scenario ->
             assertEquals(Lifecycle.State.DESTROYED, scenario.state)
             assertEquals(Activity.RESULT_CANCELED, scenario.result.resultCode)
         }
@@ -244,12 +270,12 @@ class FintocWidgetActivityTest {
         val requestId = intent.getStringExtra(FintocWidgetContract.EXTRA_REQUEST_ID).orEmpty()
 
         launch(intent).use { scenario ->
-            assertNotNull(FintocWidgetRequests.find(requestId))
+            assertNotNull(pendingRequests().find(requestId))
 
             composeRule.onNodeWithText("Close").performClick()
             scenario.moveToState(Lifecycle.State.DESTROYED)
 
-            assertNull(FintocWidgetRequests.find(requestId))
+            assertNull(pendingRequests().find(requestId))
         }
     }
 

@@ -47,8 +47,7 @@ public class FintocWidgetContract : ActivityResultContract<FintocWidgetOptions, 
 
     /** @throws IllegalStateException If [Fintoc.initialize] has not been called. */
     override fun createIntent(context: Context, input: FintocWidgetOptions): Intent {
-        Fintoc.requireKoin()
-        val requestId = FintocWidgetRequests.register(input)
+        val requestId = Fintoc.requireKoin().get<FintocWidgetRequests>().register(input)
         return Intent(context, FintocWidgetActivity::class.java).putExtra(EXTRA_REQUEST_ID, requestId)
     }
 
