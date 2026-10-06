@@ -26,6 +26,7 @@ class FintocWidgetUrlInstrumentedTest {
         assertEquals("payments", uri.getQueryParameter("product"))
         assertEquals("cs_123_sec_456", uri.getQueryParameter("session_token"))
         assertNull(uri.getQueryParameter("holder_type"))
+        assertEquals("true", uri.getQueryParameter("_on_event"))
     }
 
     @Test
