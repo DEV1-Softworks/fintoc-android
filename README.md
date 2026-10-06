@@ -71,4 +71,6 @@ class MyApplication : Application() {
 ## Credits and license
 
 The API is being modeled after [sergiocampama/Fintoc](https://github.com/sergiocampama/Fintoc), released under the
-MIT License (© 2021 Sergio Campamá). This repository does not declare its own license yet.
+MIT License (© 2021 Sergio Campamá). That notice is kept in [NOTICE](NOTICE).
+
+This project is licensed under the [Apache License 2.0](LICENSE).

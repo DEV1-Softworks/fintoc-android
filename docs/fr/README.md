@@ -71,4 +71,6 @@ class MyApplication : Application() {
 ## Crédits et licence
 
 L'API est modélisée d'après [sergiocampama/Fintoc](https://github.com/sergiocampama/Fintoc), publiée sous licence MIT
-(© 2021 Sergio Campamá). Ce dépôt ne déclare pas encore sa propre licence.
+(© 2021 Sergio Campamá). Cette mention est conservée dans [NOTICE](../../NOTICE).
+
+Ce projet est distribué sous la [licence Apache 2.0](../../LICENSE).
