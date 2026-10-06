@@ -289,14 +289,31 @@ sequenceDiagram
     Host->>Fintoc: initialize(context, configuration)
     Fintoc->>Container: ferme le conteneur précédent, s'il existe
     Fintoc->>Container: FintocKoinContainer(context, configuration)
-    Container->>Koin: koinApplication { modules(coreModule) }
-    Note over Koin: Enregistre Context (contexte de l'application)<br/>et FintocConfiguration
+    Container->>Koin: koinApplication { modules(coreModule, widgetModule) }
     Host->>Fintoc: shutdown()
     Fintoc->>Container: close()
+    Container->>Koin: close(), qui exécute les crochets onClose
 ```
 
+Ce qui vit dans le conteneur, et pourquoi :
+
+| Module | Définition | Type | Pourquoi dans le conteneur |
+|---|---|---|---|
+| `coreModule` | `Context` | `single` | Le contexte de l'application, jamais une Activity : rien ne fuit. |
+| `coreModule` | `FintocConfiguration` | `single` | Les paramètres donnés à `Fintoc.initialize`. |
+| `widgetModule` | `FintocWidgetRequests` | `single`, avec `onClose` | Conserve les session tokens des écrans de l'hôte Activity. Il est vidé à la fermeture du conteneur : `Fintoc.shutdown()`, ou une nouvelle initialisation, oublie donc tous les jetons. |
+| `widgetModule` | `ExternalLinkLauncher` | `factory` | A besoin du contexte dans lequel le Widget est affiché : il est donc créé avec `parametersOf(context)`. |
+
+La règle : **le conteneur possède ce qui a un état ou dépend d'Android.** Les fonctions pures, sans rien à libérer,
+comme `FintocWidgetUrlBuilder`, `FintocWidgetNavigationPolicy` et `FintocWidgetRedirectParser`, restent de simples objets
+Kotlin : les injecter n'ajouterait que de l'indirection.
+
 Le code interne obtient ses dépendances via `Fintoc.requireKoin()`. Si l'application hôte a oublié d'appeler `initialize`,
-l'appel échoue immédiatement avec un message expliquant quoi faire.
+l'appel échoue immédiatement avec un message expliquant quoi faire. Le code qui ne doit pas planter sans le SDK, comme
+une Activity que le système restaure après la mort du processus, utilise `Fintoc.koinOrNull()` et se ferme.
+
+Le SDK n'a besoin d'aucune règle consommateur supplémentaire pour R8. Un build release minifié avec réduction des
+ressources a été vérifié sur un appareil réel : l'hôte Activity s'est ouvert et a tout résolu via Koin.
 
 ## Choix de build
 

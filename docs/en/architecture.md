@@ -281,14 +281,31 @@ sequenceDiagram
     Host->>Fintoc: initialize(context, configuration)
     Fintoc->>Container: close previous container, if any
     Fintoc->>Container: FintocKoinContainer(context, configuration)
-    Container->>Koin: koinApplication { modules(coreModule) }
-    Note over Koin: Registers Context (application context)<br/>and FintocConfiguration
+    Container->>Koin: koinApplication { modules(coreModule, widgetModule) }
     Host->>Fintoc: shutdown()
     Fintoc->>Container: close()
+    Container->>Koin: close(), which runs the onClose hooks
 ```
 
-Internal code gets dependencies through `Fintoc.requireKoin()`. If the host forgot to call `initialize`, it fails
-immediately with a message explaining what to do.
+What lives in the container, and why:
+
+| Module | Definition | Kind | Why it is in the container |
+|---|---|---|---|
+| `coreModule` | `Context` | `single` | The application context, never an Activity, so nothing leaks. |
+| `coreModule` | `FintocConfiguration` | `single` | The settings given to `Fintoc.initialize`. |
+| `widgetModule` | `FintocWidgetRequests` | `single`, with `onClose` | Holds the session tokens of the screens of the Activity host. It is cleared when the container closes, so `Fintoc.shutdown()`, or initializing again, forgets every token. |
+| `widgetModule` | `ExternalLinkLauncher` | `factory` | Needs the context the Widget is shown in, so it is created with `parametersOf(context)`. |
+
+The rule: **the container owns what has state or depends on Android.** Pure functions with nothing to release, such as
+`FintocWidgetUrlBuilder`, `FintocWidgetNavigationPolicy` and `FintocWidgetRedirectParser`, stay plain Kotlin objects:
+injecting them would only add indirection.
+
+Internal code gets its dependencies through `Fintoc.requireKoin()`. If the host app forgot to call `initialize`, it fails
+immediately with a message explaining what to do. Code that must not crash without the SDK, such as an Activity that the
+system restores after the process died, uses `Fintoc.koinOrNull()` and closes instead.
+
+The SDK needs no extra consumer rules for R8. A minified release build with resource shrinking was checked on a real
+device: the Activity host opened and resolved everything through Koin.
 
 ## Build decisions
 
