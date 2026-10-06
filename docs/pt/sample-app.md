@@ -64,19 +64,26 @@ Se o seu disser `session_token: null`, procure na referência o `ui_mode` que se
 Use as [credenciais de teste](https://docs.fintoc.com/guides/resources/test-mode) da Fintoc para concluir um pagamento no
 sandbox.
 
-## O que executá-lo pode esclarecer
+## O que foi verificado contra o sandbox
 
-O SDK foi construído a partir da documentação da Fintoc e testado em um dispositivo, mas alguns comportamentos só se veem
-com uma sessão real. O exemplo é o lugar para verificá-los:
+O SDK foi construído a partir da documentação da Fintoc e testado em um dispositivo. Executar este exemplo contra o
+sandbox da Fintoc confirmou:
 
-- **Eventos do Widget.** Com uma chave `pk_test_` real o registro de eventos deve se encher, começando por `opened`. O SDK
-  sempre envia `_on_event=true`: se os eventos não chegarem, comece por aí.
-- **Um valor secreto no endereço de retorno.** A demo do checkout hospedado põe um valor aleatório nos dois endereços.
-  Depois de pagar, o exemplo deve dizer que o endereço de sucesso voltou. Se a Fintoc rejeitar ou descartar a query
-  string, o SDK precisaria de outra forma de levar o valor.
-- **Um esquema personalizado como endereço de retorno.** O exemplo usa `fintocsample://`. Se a Fintoc o recusar, use um
-  App Link `https` do seu próprio domínio.
-- **Fechar a Custom Tab** não informa nada ao app, por design: atualize o status a partir do seu backend.
+- **Eventos do Widget.** Com uma chave `pk_test_` real o registro de eventos se enche, começando por `opened`. O SDK
+  sempre envia `_on_event=true`.
+- **Um valor secreto no endereço de retorno.** A demo do checkout hospedado põe um valor aleatório nos dois endereços, e
+  a Fintoc devolve a query string, então o exemplo distingue o endereço de sucesso que leva o seu valor de um
+  falsificado.
+- **Um esquema personalizado como endereço de retorno.** A Fintoc aceita `fintocsample://`. Um app real ainda deve
+  preferir um App Link `https` do seu próprio domínio, que nenhum outro app pode reivindicar.
+
+Continua em aberto:
+
+- **Quando uma Checkout Session tem um `session_token`.** A documentação da Fintoc mostra um `redirect_url` e um
+  `session_token`, mas não quando o token é `null`. Verifique a resposta da sua sessão e a referência da API da Fintoc
+  para o `ui_mode` que se aplica aos pagamentos com o Widget.
+
+Fechar a Custom Tab não informa nada ao app, por design: atualize o status a partir do seu backend.
 
 ## Como é construído
 

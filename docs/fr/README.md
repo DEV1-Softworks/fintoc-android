@@ -13,7 +13,7 @@ Fintoc, est conçu avec Compose en priorité et utilise Koin pour l'injection de
 > d'exemple, la configuration du Widget (validation de la clé publique, options par produit et constructeur d'URL) et
 > l'analyseur d'événements du Widget, le `FintocWidget` de Compose, l'hôte Activity pour les apps sans Compose, le
 > changement manuel de langue, les contrôles d'accessibilité, le checkout hébergé et l'application d'exemple complète
-> sont en place. La publication sur Maven arrive dans une pull request à part.
+> sont en place, et la publication sur Maven Central est configurée. La première version reste à venir.
 
 ## Modules
 
@@ -39,8 +39,35 @@ flowchart LR
 | Android Studio | Une version stable récente compatible avec Android Gradle Plugin 9.4 |
 | Appareil ou émulateur | Android 6.0 (API 23) ou supérieur, uniquement pour les tests instrumentés |
 
-Compatible avec Android 6.0 (API 23) et supérieur. Le SDK est compilé avec `compileSdk 37` ; comme il dépend de
-Jetpack Compose, les applications qui l'intègrent doivent aussi compiler avec `compileSdk 37`, ou figer un Compose BOM plus ancien.
+Compatible avec Android 6.0 (API 23) et supérieur. Les bibliothèques Jetpack Compose et AndroidX sur lesquelles s'appuie
+le SDK exigent `compileSdk 37`, et le SDK le déclare dans ses propres métadonnées : une application qui compile contre une
+API plus ancienne s'arrête avec un message clair. [Installation](#installation) liste ce dont votre application a besoin.
+
+## Installation
+
+> **Pas encore publiée.** La première version n'a pas atteint Maven Central. En attendant, compilez la bibliothèque depuis
+> les sources : exécutez `./gradlew :fintoc-sdk:publishToMavenLocal`, ajoutez `mavenLocal()` aux dépôts de votre
+> application et utilisez le `VERSION_NAME` de `gradle.properties`.
+
+```kotlin
+dependencies {
+    implementation("mx.dev1.fintoc:fintoc-sdk:<version>")
+}
+```
+
+Ce dont votre application a besoin :
+
+| | Exigence | Pourquoi |
+|---|---|---|
+| `compileSdk` | 37 ou supérieur | Les bibliothèques Compose et AndroidX sur lesquelles s'appuie le SDK l'exigent. Gradle s'arrête avec un message clair si le vôtre est inférieur, et figer un Compose BOM plus ancien n'aide pas. |
+| Android Gradle Plugin | Une version qui prend en charge `compileSdk 37` | Ce projet utilise la 9.4.1. |
+| `minSdk` | 23 | Android 6.0. |
+| Kotlin | 2.2 ou supérieur | Vérifié avec les compilateurs 2.2.0 et 2.4.20. La bibliothèque est compilée au niveau de langage 2.2 et ne demande qu'une bibliothèque standard 2.2 : elle ne pousse donc pas votre application vers un Kotlin plus récent. |
+| Jetpack Compose | Seulement pour le composable `FintocWidget` | Une application sans Compose utilise `FintocWidgetContract`, sans plugin Compose ni code Compose propre. Les bibliothèques Compose rejoignent tout de même votre application, car le SDK en dépend. |
+| Permissions et Activities | Rien à déclarer | Le SDK ajoute à votre manifeste la permission `INTERNET` et sa propre Activity privée. |
+
+Si vous publiez un Android App Bundle et voulez forcer la langue des textes propres au SDK, désactivez la division par
+langue : voir [Langues](architecture.md#langues).
 
 ## Démarrage rapide
 
@@ -172,6 +199,8 @@ L'adresse qui revient n'est qu'un indice : confirmez les paiements avec les webh
 | Présentation | [en](../../README.md) | [es](../es/README.md) | ce fichier | [pt](../pt/README.md) |
 | Architecture | [en](../en/architecture.md) | [es](../es/architecture.md) | [fr](architecture.md) | [pt](../pt/architecture.md) |
 | Application d'exemple | [en](../en/sample-app.md) | [es](../es/sample-app.md) | [fr](sample-app.md) | [pt](../pt/sample-app.md) |
+| Publier une version | [en](../en/releasing.md) | [es](../es/releasing.md) | [fr](releasing.md) | [pt](../pt/releasing.md) |
+| Journal des modifications | [en](../en/changelog.md) | [es](../es/changelog.md) | [fr](changelog.md) | [pt](../pt/changelog.md) |
 | Contribuer | [en](../en/contributing.md) | [es](../es/contributing.md) | [fr](contributing.md) | [pt](../pt/contributing.md) |
 
 ## Crédits et licence

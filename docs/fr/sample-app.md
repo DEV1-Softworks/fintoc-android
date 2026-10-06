@@ -65,19 +65,26 @@ paiements par Widget.
 Utilisez les [identifiants de test](https://docs.fintoc.com/guides/resources/test-mode) de Fintoc pour terminer un
 paiement dans le sandbox.
 
-## Ce que son exécution peut trancher
+## Ce qui a été vérifié contre le sandbox
 
-Le SDK a été construit à partir de la documentation de Fintoc et testé sur un appareil, mais certains comportements ne se
-voient qu'avec une vraie session. L'exemple est l'endroit pour les vérifier :
+Le SDK a été construit à partir de la documentation de Fintoc et testé sur un appareil. Exécuter cet exemple contre le
+sandbox de Fintoc a confirmé :
 
-- **Événements du Widget.** Avec une vraie clé `pk_test_`, le journal d'événements devrait se remplir, à commencer par
-  `opened`. Le SDK envoie toujours `_on_event=true` : si les événements n'arrivent pas, commencez par là.
+- **Événements du Widget.** Avec une vraie clé `pk_test_`, le journal d'événements se remplit, à commencer par `opened`.
+  Le SDK envoie toujours `_on_event=true`.
 - **Une valeur secrète dans l'adresse de retour.** La démo du checkout hébergé met une valeur aléatoire dans les deux
-  adresses. Après le paiement, l'exemple devrait indiquer que l'adresse de succès est revenue. Si Fintoc rejette ou
-  supprime la query string, le SDK aurait besoin d'un autre moyen de porter la valeur.
-- **Un schéma personnalisé comme adresse de retour.** L'exemple utilise `fintocsample://`. Si Fintoc le refuse, utilisez un
-  App Link `https` de votre propre domaine.
-- **Fermer la Custom Tab** ne signale rien à l'app, par conception : actualisez l'état depuis votre backend.
+  adresses, et Fintoc renvoie la query string : l'exemple distingue donc l'adresse de succès qui porte votre valeur
+  d'une adresse falsifiée.
+- **Un schéma personnalisé comme adresse de retour.** Fintoc accepte `fintocsample://`. Une vraie app devrait malgré
+  tout préférer un App Link `https` de son propre domaine, qu'aucune autre app ne peut revendiquer.
+
+Reste ouvert :
+
+- **Quand une Checkout Session a un `session_token`.** La documentation de Fintoc montre un `redirect_url` et un
+  `session_token`, mais pas quand le jeton vaut `null`. Consultez la réponse de votre session et la référence d'API de
+  Fintoc pour le `ui_mode` qui s'applique aux paiements par Widget.
+
+Fermer la Custom Tab ne signale rien à l'app, par conception : actualisez l'état depuis votre backend.
 
 ## Comment elle est construite
 

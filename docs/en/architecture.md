@@ -288,8 +288,8 @@ Good to know:
   never come back. Fintoc says the same: use webhooks. Closing the Custom Tab tells your app nothing, so refresh the
   order status from your backend when your screen resumes.
 - **Put an unguessable value in your own addresses**, such as the `n` of the example. The SDK requires every query
-  parameter of your addresses to come back with the same value. Fintoc's documentation shows addresses without a query
-  string, so check in the sandbox that your Checkout Session accepts and returns it.
+  parameter of your addresses to come back with the same value. Checked against Fintoc's sandbox: Fintoc accepts a
+  query string in your `success_url` and returns it.
 - **Prefer verified App Links to custom schemes.** Any other app can claim a custom scheme and would receive the redirect,
   secret value included. A verified App Link cannot be claimed.
 - **Use `launchMode="singleTask"`** for the Activity that receives the return addresses. Checked on a Pixel 10 with
@@ -389,6 +389,9 @@ device: the Activity host opened and resolved everything through Koin.
 | Jetpack Compose | BOM 2026.09.00 | Compose-first UI. XML is only used where the platform requires it (manifest, window theme). |
 | Java bytecode | 11 | Keeps the library consumable by as many host apps as possible. |
 | Espresso | 3.7.0, pinned in `fintoc-sdk` too | Compose UI tests use an Espresso hook that fails on recent Android versions when an older release is pulled in indirectly. |
+| Publishing | `com.vanniktech.maven.publish` 0.37.0 | Publishes to Maven Central with sources, API docs and GPG signatures. Coordinates and POM data live in `gradle.properties`. |
+| API documentation | Dokka 2.2.0 | Turns the KDoc of the public API into the javadoc jar. The Java doclet cannot read Kotlin, so without it the jar holds only stylesheets. |
+| Kotlin language level | 2.2, standard library 2.2.0 | A compiler reads metadata up to one version newer than itself, and Gradle gives an app the newest standard library that any dependency asks for. Compiling this build's 2.4 would force newer Kotlin on every app. Checked with a consumer app on Kotlin 2.2.0. |
 | Versions | `gradle/libs.versions.toml` | Single place for every dependency version. |
 
 ## Testing and coverage

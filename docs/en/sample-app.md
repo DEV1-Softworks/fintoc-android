@@ -63,19 +63,25 @@ If yours says `session_token: null`, look in the API reference for the `ui_mode`
 
 Use Fintoc's [test credentials](https://docs.fintoc.com/guides/resources/test-mode) to complete a payment in the sandbox.
 
-## What running it can settle
+## What has been checked against the sandbox
 
-The SDK was built from Fintoc's documentation and tested on a device, but some behaviors can only be seen with a real
-session. The sample is the place to check them:
+The SDK was built from Fintoc's documentation and tested on a device. Running this sample against Fintoc's sandbox has
+confirmed:
 
-- **Widget events.** With a real `pk_test_` key the event log should fill up, starting with `opened`. The SDK always sends
-  `_on_event=true`: if events do not arrive, start there.
-- **A secret value in the return address.** The hosted checkout demo puts a random value in both addresses. After paying,
-  the sample should say that the success address came back. If Fintoc rejects or drops the query string, the SDK would
-  need another way to carry the value.
-- **A custom scheme as a return address.** The sample uses `fintocsample://`. If Fintoc refuses it, use an `https` App
-  Link of your own domain.
-- **Closing the Custom Tab** reports nothing to the app, by design: refresh the status from your backend.
+- **Widget events.** With a real `pk_test_` key the event log fills up, starting with `opened`. The SDK always sends
+  `_on_event=true`.
+- **A secret value in the return address.** The hosted checkout demo puts a random value in both addresses, and Fintoc
+  returns the query string, so the sample can tell the success address that carries your value from a forged one.
+- **A custom scheme as a return address.** Fintoc accepts `fintocsample://`. A real app should still prefer an `https`
+  App Link of its own domain, which no other app can claim.
+
+Still open:
+
+- **When a Checkout Session has a `session_token`.** Fintoc's documentation shows both a `redirect_url` and a
+  `session_token`, but not when the token is `null`. Check your session's response and Fintoc's API reference for the
+  `ui_mode` that applies to Widget payments.
+
+Closing the Custom Tab reports nothing to the app, by design: refresh the status from your backend.
 
 ## How it is built
 

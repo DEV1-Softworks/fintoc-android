@@ -12,7 +12,7 @@ Compose como primera opción y usa Koin para la inyección de dependencias.
 > pruebas, la app de ejemplo y la configuración del Widget (validación de la llave pública, opciones por producto y
 > constructor de la URL), el intérprete de eventos del Widget, el `FintocWidget` de Compose, el host con Activity para
 > apps sin Compose, el cambio manual de idioma, las pruebas de accesibilidad, el checkout alojado y la app de ejemplo
-> completa. La publicación en Maven llega en un pull request aparte.
+> completa, y la publicación en Maven Central ya está configurada. La primera versión aún está por llegar.
 
 ## Módulos
 
@@ -38,8 +38,35 @@ flowchart LR
 | Android Studio | Una versión estable reciente compatible con Android Gradle Plugin 9.4 |
 | Dispositivo o emulador | Android 6.0 (API 23) o superior, solo para las pruebas instrumentadas |
 
-Compatible con Android 6.0 (API 23) y superior. El SDK se compila con `compileSdk 37`; como depende de Jetpack Compose,
-las apps que lo integren también deben compilar con `compileSdk 37`, o fijar un Compose BOM anterior.
+Compatible con Android 6.0 (API 23) y superior. Las librerías de Jetpack Compose y AndroidX en las que se apoya el SDK
+necesitan `compileSdk 37`, y el SDK lo declara en sus propios metadatos: una app que compile contra una API más antigua se
+detiene con un mensaje claro. [Instalación](#instalación) lista lo que necesita tu app.
+
+## Instalación
+
+> **Aún no está publicada.** La primera versión no ha llegado a Maven Central. Mientras tanto, compila la librería desde el
+> código fuente: ejecuta `./gradlew :fintoc-sdk:publishToMavenLocal`, agrega `mavenLocal()` a los repositorios de tu app y
+> usa el `VERSION_NAME` de `gradle.properties`.
+
+```kotlin
+dependencies {
+    implementation("mx.dev1.fintoc:fintoc-sdk:<version>")
+}
+```
+
+Lo que necesita tu app:
+
+| | Requisito | Por qué |
+|---|---|---|
+| `compileSdk` | 37 o superior | Lo exigen las librerías de Compose y AndroidX en las que se apoya el SDK. Gradle se detiene con un mensaje claro si el tuyo es menor, y fijar un Compose BOM anterior no ayuda. |
+| Android Gradle Plugin | Uno que admita `compileSdk 37` | Este proyecto usa 9.4.1. |
+| `minSdk` | 23 | Android 6.0. |
+| Kotlin | 2.2 o superior | Comprobado con compiladores 2.2.0 y 2.4.20. La librería se compila con el nivel de lenguaje 2.2 y solo pide una biblioteca estándar 2.2, así que no obliga a tu app a usar un Kotlin más nuevo. |
+| Jetpack Compose | Solo para el composable `FintocWidget` | Una app sin Compose usa `FintocWidgetContract`, sin plugin de Compose ni código propio de Compose. Las librerías de Compose igual se suman a tu app, porque el SDK depende de ellas. |
+| Permisos y Activities | Nada que declarar | El SDK agrega a tu manifiesto el permiso `INTERNET` y su propia Activity privada. |
+
+Si publicas un Android App Bundle y quieres forzar el idioma de los textos propios del SDK, desactiva la división por
+idioma: consulta [Idiomas](architecture.md#idiomas).
 
 ## Inicio rápido
 
@@ -166,6 +193,8 @@ La dirección que vuelve es solo una pista: confirma los pagos con los webhooks 
 | Resumen | [en](../../README.md) | este archivo | [fr](../fr/README.md) | [pt](../pt/README.md) |
 | Arquitectura | [en](../en/architecture.md) | [es](architecture.md) | [fr](../fr/architecture.md) | [pt](../pt/architecture.md) |
 | App de ejemplo | [en](../en/sample-app.md) | [es](sample-app.md) | [fr](../fr/sample-app.md) | [pt](../pt/sample-app.md) |
+| Publicar una versión | [en](../en/releasing.md) | [es](releasing.md) | [fr](../fr/releasing.md) | [pt](../pt/releasing.md) |
+| Registro de cambios | [en](../en/changelog.md) | [es](changelog.md) | [fr](../fr/changelog.md) | [pt](../pt/changelog.md) |
 | Cómo contribuir | [en](../en/contributing.md) | [es](contributing.md) | [fr](../fr/contributing.md) | [pt](../pt/contributing.md) |
 
 ## Créditos y licencia

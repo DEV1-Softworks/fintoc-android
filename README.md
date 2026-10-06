@@ -11,7 +11,8 @@ for dependency injection.
 > **Status: in development.** The build, the dependency-injection container, the test pipeline, the sample app and the
 > Widget configuration (public key check, options per product and URL builder), the Widget event parser, the Compose
 > `FintocWidget`, the Activity host for apps without Compose, the language override, the accessibility checks, the
-> hosted checkout and the full sample app are in place. The Maven release arrives in a pull request of its own.
+> hosted checkout and the full sample app are in place, and publishing to Maven Central is set up. The first release is
+> still to come.
 
 ## Modules
 
@@ -37,8 +38,35 @@ flowchart LR
 | Android Studio | A recent stable release that supports Android Gradle Plugin 9.4 |
 | Device or emulator | Android 6.0 (API 23) or newer, only needed for instrumented tests |
 
-Supported on Android 6.0 (API 23) and newer. The SDK is compiled with `compileSdk 37`; because it depends on
-Jetpack Compose, host applications must compile against `compileSdk 37` too, or pin an older Compose BOM.
+Supported on Android 6.0 (API 23) and newer. The Jetpack Compose and AndroidX libraries that the SDK builds on need
+`compileSdk 37`, and the SDK says so in its own metadata: an app that compiles against an older API stops with a clear
+message. [Installation](#installation) lists what your own app needs.
+
+## Installation
+
+> **Not published yet.** The first release has not reached Maven Central. Until it does, build the library from source:
+> run `./gradlew :fintoc-sdk:publishToMavenLocal`, add `mavenLocal()` to the repositories of your app, and use the
+> `VERSION_NAME` of `gradle.properties`.
+
+```kotlin
+dependencies {
+    implementation("mx.dev1.fintoc:fintoc-sdk:<version>")
+}
+```
+
+What your app needs:
+
+| | Requirement | Why |
+|---|---|---|
+| `compileSdk` | 37 or higher | The Compose and AndroidX libraries that the SDK builds on require it. Gradle stops with a clear message if yours is lower, and pinning an older Compose BOM does not help. |
+| Android Gradle Plugin | One that supports `compileSdk 37` | This project uses 9.4.1. |
+| `minSdk` | 23 | Android 6.0. |
+| Kotlin | 2.2 or newer | Checked with compilers 2.2.0 and 2.4.20. The library is compiled at language level 2.2, and asks only for a 2.2 standard library, so it does not push your app to a newer Kotlin. |
+| Jetpack Compose | Only for the `FintocWidget` composable | An app without Compose uses `FintocWidgetContract`, with no Compose plugin or code of its own. The Compose libraries still join your app, because the SDK depends on them. |
+| Permissions and Activities | Nothing to declare | The SDK adds the `INTERNET` permission and its own private Activity to your manifest. |
+
+If you publish an Android App Bundle and want to force the language of the SDK's own texts, turn off language splits: see
+[Languages](docs/en/architecture.md#languages).
 
 ## Quick start
 
@@ -165,6 +193,8 @@ The returned address is only a hint: confirm payments with Fintoc webhooks on yo
 | Overview | this file | [es](docs/es/README.md) | [fr](docs/fr/README.md) | [pt](docs/pt/README.md) |
 | Architecture | [en](docs/en/architecture.md) | [es](docs/es/architecture.md) | [fr](docs/fr/architecture.md) | [pt](docs/pt/architecture.md) |
 | Sample app | [en](docs/en/sample-app.md) | [es](docs/es/sample-app.md) | [fr](docs/fr/sample-app.md) | [pt](docs/pt/sample-app.md) |
+| Releasing | [en](docs/en/releasing.md) | [es](docs/es/releasing.md) | [fr](docs/fr/releasing.md) | [pt](docs/pt/releasing.md) |
+| Changelog | [en](docs/en/changelog.md) | [es](docs/es/changelog.md) | [fr](docs/fr/changelog.md) | [pt](docs/pt/changelog.md) |
 | Contributing | [en](docs/en/contributing.md) | [es](docs/es/contributing.md) | [fr](docs/fr/contributing.md) | [pt](docs/pt/contributing.md) |
 
 ## Credits and license
