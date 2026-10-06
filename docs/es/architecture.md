@@ -66,6 +66,7 @@ propósito, así que la superficie pública de la librería siempre es intencion
 | `FintocWidget` | El composable que muestra el Widget. Una sobrecarga recibe `FintocWidgetOptions`; la otra, un proveedor `suspend` del session token para pagos. |
 | `FintocLanguage` | Idiomas de los textos propios del SDK: español, inglés, francés y portugués. |
 | `FintocWidgetContract`, `FintocWidgetResult` | Abren el Widget en una pantalla propia, para apps sin Compose, y leen cómo terminó: `Succeeded` o `Exited`. |
+| `FintocHostedCheckout`, `FintocHostedCheckoutOutcome` | Abren un checkout alojado por Fintoc en una Custom Tab, e indican si la dirección que volvió a tu app es tu dirección de éxito, tu dirección de cancelación o ninguna. |
 
 ## Configuración del Widget
 
@@ -231,6 +232,76 @@ Decisiones de diseño:
   composable.
 - Es de borde a borde y rellena su contenido para el teclado y las barras del sistema, así que ningún campo del Widget
   queda debajo de ellos.
+
+## Checkout alojado
+
+Además del Widget, Fintoc ofrece un **checkout alojado**. Tu backend crea una Checkout Session y Fintoc responde con un
+`redirect_url`, como `https://pay.fintoc.com/checkout/cs_…`, donde el cliente paga. Al terminar, Fintoc lo envía de
+vuelta al `success_url` o al `cancel_url` que diste. Los flujos `payment`, `setup` y `subscription` funcionan así.
+`FintocHostedCheckout` abre esa página en una **Custom Tab**, una vista de navegador con la barra de direcciones visible,
+y te dice qué volvió.
+
+```mermaid
+sequenceDiagram
+    participant App as Tu app
+    participant Backend as Tu backend
+    participant Checkout as FintocHostedCheckout
+    participant Tab as Custom Tab
+    participant Fintoc as pay.fintoc.com
+
+    App->>Backend: crea una Checkout Session (success_url, cancel_url)
+    Backend-->>App: redirect_url
+    App->>Checkout: open(context, redirect_url)
+    Checkout->>Tab: solo https en un subdominio de fintoc.com
+    Tab->>Fintoc: el cliente paga
+    Fintoc-->>Tab: redirige a success_url o cancel_url
+    Tab-->>App: tu Activity recibe la dirección
+    App->>Checkout: outcomeOf(intent)
+    Note over App: Solo una pista. Confirma con webhooks.
+```
+
+Qué se verifica:
+
+| Qué | Regla |
+|---|---|
+| El `redirectUrl` que abres | `https`, en un subdominio de `fintoc.com`, sin credenciales y con el puerto por defecto. Cualquier otra cosa lanza `IllegalArgumentException` y no se abre nada. Se rechazan los parecidos, como `fintoc.com` mismo, `pay.fintoc.com.evil.example` o `evilfintoc.com`. |
+| Tus `successUrl` y `cancelUrl` | Una dirección `https` absoluta, o un esquema personalizado de tu app. Se rechazan `http`, `javascript:`, `file:`, `intent:` y similares, y también dos direcciones que no se puedan distinguir. |
+| Una dirección que llega a tu app | El mismo esquema, host, puerto y ruta que una de las tuyas (no importan las mayúsculas ni una barra final). Su query se ignora, salvo los parámetros que lleve tu propia dirección: cada uno debe volver con el mismo valor. Una dirección que encaje con las dos tuyas no se atiende. |
+
+Para recibir al cliente de vuelta, declara la Activity que maneja tus direcciones de regreso, aquí un App Link, y lee el
+resultado en `onCreate` y en `onNewIntent`:
+
+```xml
+<activity
+    android:name=".PaymentReturnActivity"
+    android:exported="true"
+    android:launchMode="singleTask">
+    <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="https" android:host="merchant.com" android:pathPrefix="/pay" />
+    </intent-filter>
+</activity>
+```
+
+Conviene saber:
+
+- **Una dirección que vuelve es una pista, nunca una prueba.** Cualquier app puede abrir tu deep link, y el cliente puede
+  cerrar la pestaña y no volver. Fintoc dice lo mismo: usa webhooks. Cerrar la Custom Tab no le dice nada a tu app, así que
+  actualiza el estado del pedido desde tu backend cuando tu pantalla se reanude.
+- **Pon un valor impredecible en tus propias direcciones**, como la `n` del ejemplo. El SDK exige que cada parámetro de
+  query de tus direcciones vuelva con el mismo valor. La documentación de Fintoc muestra direcciones sin query, así que
+  comprueba en el sandbox que tu Checkout Session la acepta y la devuelve.
+- **Prefiere App Links verificados a esquemas personalizados.** Cualquier otra app puede reclamar un esquema
+  personalizado y recibiría la redirección, valor secreto incluido. Un App Link verificado no puede reclamarse.
+- **Usa `launchMode="singleTask"`** en la Activity que recibe las direcciones de regreso. Comprobado en un Pixel 10 con
+  Chrome: la Activity que ya está abierta recibe la dirección por `onNewIntent` y la Custom Tab se cierra. Con el modo de
+  lanzamiento por defecto se crea una segunda copia de la Activity. En el mismo dispositivo, una redirección del servidor
+  desde una Custom Tab hacia un esquema personalizado abrió la app sin un toque, pero otros navegadores y versiones
+  pueden comportarse distinto.
+- `open` devuelve `false` cuando ninguna app puede abrir la dirección, y necesita `Fintoc.initialize`. `outcomeOf` no
+  necesita nada, así que también funciona cuando el sistema restaura tu Activity en un proceso nuevo.
 
 ## Idiomas
 

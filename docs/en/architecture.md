@@ -66,6 +66,7 @@ The SDK enables Kotlin's **explicit API mode**. Every declaration is `internal` 
 | `FintocWidget` | The composable that shows the Widget. One overload takes `FintocWidgetOptions`, the other a `suspend` session token provider for payments. |
 | `FintocLanguage` | Languages of the SDK's own texts: English, Spanish, French and Portuguese. |
 | `FintocWidgetContract`, `FintocWidgetResult` | Open the Widget in a screen of its own, for apps without Compose, and read how it ended: `Succeeded` or `Exited`. |
+| `FintocHostedCheckout`, `FintocHostedCheckoutOutcome` | Open a Fintoc-hosted checkout in a Custom Tab, and tell whether the address that came back to your app is your success address, your cancel address or neither. |
 
 ## Widget configuration
 
@@ -228,6 +229,75 @@ Design decisions:
   composable.
 - It is edge-to-edge and pads its content for the keyboard and the system bars, so no field of the Widget ends up under
   them.
+
+## Hosted checkout
+
+Besides the Widget, Fintoc offers a **hosted checkout**. Your backend creates a Checkout Session and Fintoc answers with
+a `redirect_url`, such as `https://pay.fintoc.com/checkout/cs_…`, where the customer pays. When they finish, Fintoc
+sends them back to the `success_url` or the `cancel_url` that you gave. The `payment`, `setup` and `subscription` flows
+all work this way. `FintocHostedCheckout` opens that page in a **Custom Tab**, a browser view with a visible address bar,
+and tells you what came back.
+
+```mermaid
+sequenceDiagram
+    participant App as Your app
+    participant Backend as Your backend
+    participant Checkout as FintocHostedCheckout
+    participant Tab as Custom Tab
+    participant Fintoc as pay.fintoc.com
+
+    App->>Backend: create a Checkout Session (success_url, cancel_url)
+    Backend-->>App: redirect_url
+    App->>Checkout: open(context, redirect_url)
+    Checkout->>Tab: only https on a fintoc.com subdomain
+    Tab->>Fintoc: the customer pays
+    Fintoc-->>Tab: redirect to success_url or cancel_url
+    Tab-->>App: your Activity receives the address
+    App->>Checkout: outcomeOf(intent)
+    Note over App: A hint only. Confirm with webhooks.
+```
+
+What is checked:
+
+| What | Rule |
+|---|---|
+| The `redirectUrl` you open | `https`, on a subdomain of `fintoc.com`, with no credentials and the default port. Anything else throws `IllegalArgumentException` and nothing opens. Look-alikes such as `fintoc.com` itself, `pay.fintoc.com.evil.example` or `evilfintoc.com` are refused. |
+| Your `successUrl` and `cancelUrl` | An absolute `https` address, or a custom scheme of your app. `http`, `javascript:`, `file:`, `intent:` and the like are refused, and so are two addresses that cannot be told apart. |
+| An address that reaches your app | The same scheme, host, port and path as one of yours (case and a trailing slash do not matter). Its query is ignored, except for the parameters that your own address carries: each must come back with the same value. An address that fits both of yours is not acted on. |
+
+To receive the customer back, declare the Activity that handles your return addresses, here an App Link, and read the
+outcome in `onCreate` and in `onNewIntent`:
+
+```xml
+<activity
+    android:name=".PaymentReturnActivity"
+    android:exported="true"
+    android:launchMode="singleTask">
+    <intent-filter android:autoVerify="true">
+        <action android:name="android.intent.action.VIEW" />
+        <category android:name="android.intent.category.DEFAULT" />
+        <category android:name="android.intent.category.BROWSABLE" />
+        <data android:scheme="https" android:host="merchant.com" android:pathPrefix="/pay" />
+    </intent-filter>
+</activity>
+```
+
+Good to know:
+
+- **A returned address is a hint, never proof.** Any app can open your deep link, and the customer may close the tab and
+  never come back. Fintoc says the same: use webhooks. Closing the Custom Tab tells your app nothing, so refresh the
+  order status from your backend when your screen resumes.
+- **Put an unguessable value in your own addresses**, such as the `n` of the example. The SDK requires every query
+  parameter of your addresses to come back with the same value. Fintoc's documentation shows addresses without a query
+  string, so check in the sandbox that your Checkout Session accepts and returns it.
+- **Prefer verified App Links to custom schemes.** Any other app can claim a custom scheme and would receive the redirect,
+  secret value included. A verified App Link cannot be claimed.
+- **Use `launchMode="singleTask"`** for the Activity that receives the return addresses. Checked on a Pixel 10 with
+  Chrome: the Activity that is already open gets the address through `onNewIntent` and the Custom Tab closes. With the
+  default launch mode a second copy of the Activity is created. On the same device, a server redirect from a Custom Tab
+  into a custom scheme opened the app without a tap, but other browsers and versions may behave differently.
+- `open` returns `false` when no app can open the address, and needs `Fintoc.initialize`. `outcomeOf` needs nothing, so it
+  also works when the system restores your Activity in a new process.
 
 ## Languages
 

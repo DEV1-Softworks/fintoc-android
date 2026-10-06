@@ -11,7 +11,7 @@ Compose como primera opción y usa Koin para la inyección de dependencias.
 > **Estado: en desarrollo.** Ya están listos el build, el contenedor de inyección de dependencias, el pipeline de
 > pruebas, la app de ejemplo y la configuración del Widget (validación de la llave pública, opciones por producto y
 > constructor de la URL), el intérprete de eventos del Widget, el `FintocWidget` de Compose, el host con Activity para
-> apps sin Compose, el cambio manual de idioma y las pruebas de accesibilidad. El checkout alojado, la app de ejemplo
+> apps sin Compose, el cambio manual de idioma, las pruebas de accesibilidad y el checkout alojado. La app de ejemplo
 > completa y la publicación en Maven llegan una función a la vez mediante pull requests.
 
 ## Módulos
@@ -115,6 +115,28 @@ FintocConfiguration(publicKey = "pk_test_…", language = FintocLanguage.SPANISH
 
 La página del Widget es de Fintoc y conserva su propio idioma.
 
+Para enviar al cliente a una página de checkout alojada por Fintoc, abre el `redirect_url` de tu Checkout Session en una
+Custom Tab y lee lo que vuelve a tu app:
+
+```kotlin
+val nonce = UUID.randomUUID().toString() // keep it with the order; send both addresses to your backend
+val checkout = FintocHostedCheckout(
+    successUrl = "https://merchant.com/pay/success?n=$nonce",
+    cancelUrl = "https://merchant.com/pay/cancel?n=$nonce",
+)
+
+checkout.open(this, redirectUrlFromYourBackend)
+
+// In the Activity that receives those addresses, in onCreate and onNewIntent:
+when (checkout.outcomeOf(intent)) {
+    FintocHostedCheckoutOutcome.Succeeded -> showThatTheOrderIsBeingConfirmed()
+    FintocHostedCheckoutOutcome.Cancelled -> showThatThePaymentWasCancelled()
+    FintocHostedCheckoutOutcome.Unrelated -> Unit
+}
+```
+
+La dirección que vuelve es solo una pista: confirma los pagos con los webhooks de Fintoc en tu backend.
+
 ## Modelo de seguridad
 
 - La app solo guarda la **llave pública** (`pk_test_` o `pk_live_`). El SDK rechaza las llaves secretas (`sk_…`).
@@ -130,6 +152,9 @@ La página del Widget es de Fintoc y conserva su propio idioma.
   dirección, y la dirección contiene el session token.
 - La pantalla para apps sin Compose es privada de tu app y se oculta de las capturas de pantalla y de la lista de apps
   recientes. Los session tokens nunca viajan dentro de un `Intent`.
+- Un checkout alojado solo abre direcciones `https` de un subdominio de `fintoc.com`, en una Custom Tab cuya barra de
+  direcciones siempre es visible. La dirección que vuelve a tu app puede ser falsificada por cualquier app del
+  dispositivo, así que el SDK exige que vuelva también el valor secreto que pusiste en tu propia dirección de regreso.
 - Lo que el Widget informa a la app no es prueba de pago. Confirma los pagos con los webhooks de Fintoc en tu backend.
 
 ## Documentación
