@@ -2,6 +2,7 @@ package mx.dev1.fintoc.sdk.domain.widget
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class FintocWidgetUrlBuilderTest {
@@ -14,7 +15,7 @@ class FintocWidgetUrlBuilderTest {
 
         assertEquals(
             "https://webview.fintoc.com/widget.html" +
-                "?public_key=pk_test_abc123&product=payments&session_token=cs_123_sec_456",
+                "?public_key=pk_test_abc123&product=payments&session_token=cs_123_sec_456&_on_event=true",
             url,
         )
     }
@@ -36,7 +37,7 @@ class FintocWidgetUrlBuilderTest {
 
         assertEquals(
             "https://webview.fintoc.com/widget.html" +
-                "?public_key=pk_test_abc123&product=movements&holder_type=individual&country=mx",
+                "?public_key=pk_test_abc123&product=movements&holder_type=individual&country=mx&_on_event=true",
             FintocWidgetUrlBuilder.build(publicKey, options),
         )
     }
@@ -53,7 +54,8 @@ class FintocWidgetUrlBuilderTest {
             "https://webview.fintoc.com/widget.html" +
                 "?public_key=pk_test_abc123&product=movements&holder_type=business&country=cl" +
                 "&link_token=link_123_token_456" +
-                "&webhook_url=https%3A%2F%2Fexample.com%2Ffintoc%2Fwebhook%3Fsource%3Dapp%26v%3D1",
+                "&webhook_url=https%3A%2F%2Fexample.com%2Ffintoc%2Fwebhook%3Fsource%3Dapp%26v%3D1" +
+                "&_on_event=true",
             FintocWidgetUrlBuilder.build(publicKey, options),
         )
     }
@@ -69,7 +71,7 @@ class FintocWidgetUrlBuilderTest {
         assertEquals(
             "https://webview.fintoc.com/widget.html" +
                 "?public_key=pk_test_abc123&product=subscriptions&holder_type=individual&country=mx" +
-                "&widget_token=wt_123",
+                "&widget_token=wt_123&_on_event=true",
             FintocWidgetUrlBuilder.build(publicKey, options),
         )
     }
@@ -83,9 +85,21 @@ class FintocWidgetUrlBuilderTest {
 
         assertEquals(
             "https://webview.fintoc.com/widget.html" +
-                "?public_key=pk_test_abc123&product=payments&session_token=cs_1%26public_key%3Dpk_live_attacker%23frag",
+                "?public_key=pk_test_abc123&product=payments" +
+                "&session_token=cs_1%26public_key%3Dpk_live_attacker%23frag&_on_event=true",
             url,
         )
+    }
+
+    @Test
+    fun `every url turns on widget events as the last parameter`() {
+        val urls = listOf(
+            FintocWidgetOptions.Payments(sessionToken = "cs_token"),
+            FintocWidgetOptions.Movements(holderType = FintocHolderType.INDIVIDUAL),
+            FintocWidgetOptions.Subscriptions(widgetToken = "wt_token", holderType = FintocHolderType.BUSINESS),
+        ).map { options -> FintocWidgetUrlBuilder.build(publicKey, options) }
+
+        urls.forEach { url -> assertTrue(url.endsWith("&_on_event=true")) }
     }
 
     @Test

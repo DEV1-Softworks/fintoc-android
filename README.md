@@ -9,8 +9,8 @@ for dependency injection.
 > **Not affiliated with Fintoc.** This is a community project. "Fintoc" is a trademark of its respective owners.
 
 > **Status: in development.** The build, the dependency-injection container, the test pipeline, the sample app and the
-> Widget configuration (public key check, options per product and URL builder) are in place. The Widget view, event
-> handling and hosted checkout arrive feature by feature through pull requests.
+> Widget configuration (public key check, options per product and URL builder) and the Widget event parser are in
+> place. The Widget view, the event callbacks and the hosted checkout arrive feature by feature through pull requests.
 
 ## Modules
 
