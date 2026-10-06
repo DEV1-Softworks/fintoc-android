@@ -9,9 +9,9 @@ construído com Compose como primeira opção e usa Koin para injeção de depen
 > **Sem afiliação com a Fintoc.** É um projeto da comunidade. «Fintoc» é uma marca de seus respectivos proprietários.
 
 > **Status: em desenvolvimento.** O build, o contêiner de injeção de dependências, o pipeline de testes, o app de
-> exemplo e a configuração do Widget (validação da chave pública, opções por produto e construtor de URL) já estão
-> prontos. A tela do Widget, o tratamento de eventos e o checkout hospedado chegam uma funcionalidade por vez por meio
-> de pull requests.
+> exemplo, a configuração do Widget (validação da chave pública, opções por produto e construtor de URL) e o
+> interpretador de eventos do Widget já estão prontos. A tela do Widget, os callbacks de eventos e o checkout
+> hospedado chegam uma funcionalidade por vez por meio de pull requests.
 
 ## Módulos
 

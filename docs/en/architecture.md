@@ -60,6 +60,9 @@ The SDK enables Kotlin's **explicit API mode**. Every declaration is `internal` 
 | `FintocEnvironment` | `TEST` or `LIVE`. |
 | `FintocWidgetOptions` | What the Widget should do: `Payments`, `Movements` or `Subscriptions`. Each validates its data and hides its tokens in `toString()`. |
 | `FintocCountry`, `FintocHolderType` | Accepted values for `country` and `holder_type`. |
+| `FintocWidgetEvent` | What the Widget reports: `Succeeded`, `Exited` or `Occurred`. |
+| `FintocWidgetEventType` | The events Fintoc documents, such as `OPENED` or `PAYMENT_ERROR`. |
+| `FintocLinkIntentResult` | The `exchangeToken` of a bank account connected with `Movements`. Its `toString()` hides the token. |
 
 ## Widget configuration
 
@@ -86,6 +89,49 @@ Safety rules enforced when you create the objects:
 - `webhookUrl` must be an absolute `https` URL.
 - Values are percent-encoded (RFC 3986), so a token cannot add or replace parameters.
 - `toString()` hides the tokens.
+
+The URL always ends with `_on_event=true`, which asks the Widget to report its events to the app.
+
+## Widget events
+
+The Widget talks back by navigating the WebView to addresses that start with `fintocwidget://`. The SDK never lets the
+WebView actually open those addresses: it hands each one to `FintocWidgetRedirectParser`, which turns it into a
+`FintocWidgetEvent`.
+
+```mermaid
+sequenceDiagram
+    participant Widget as Widget page (in the WebView)
+    participant View as WebView client (next feature)
+    participant Parser as FintocWidgetRedirectParser
+    participant App as Your app
+
+    Widget->>View: navigate to fintocwidget://event/opened?timestamp=…
+    View->>Parser: isRedirect(url) and parse(url)
+    Parser-->>View: FintocWidgetEvent.Occurred, or null if unexpected
+    View->>App: event callback
+```
+
+| Redirect from the Widget | Event |
+|---|---|
+| `fintocwidget://succeeded` | `Succeeded`. For `Movements` it also carries `?object=link_intent&exchange_token=…&id=…`, which becomes `linkIntent`. |
+| `fintocwidget://exit` | `Exited`: the user closed the Widget before finishing. |
+| `fintocwidget://event/{name}?timestamp=…` | `Occurred(name, timestampMillis, metadata)`. `type` is the matching `FintocWidgetEventType`, or `null` when Fintoc added an event this SDK does not know yet. |
+
+Safety rules of the parser:
+
+- It works on the raw text and never throws. A wrong scheme, an unknown action or an odd event name gives `null`, so the
+  page can never crash your app.
+- Event names may only use letters, digits, `_`, `.` and `-`, up to 64 characters. Redirects longer than 8,192
+  characters and parameters beyond the 64th are ignored.
+- The Widget does not encode what it sends, so decoding is lenient: only well-formed `%XX` escapes are decoded.
+- The first occurrence of a key wins. A stray `&` inside a value cannot replace an earlier `exchange_token`.
+- Values the Widget wrote as `null`, `undefined` or `[object Object]` are dropped.
+- `FintocLinkIntentResult.toString()` hides the `exchangeToken`, and `Occurred.toString()` lists the metadata keys but
+  not their values.
+
+> **An event is not proof of payment.** A user, or a compromised device, can fake what a WebView reports. Send the
+> `exchangeToken` to **your backend**, which is the only place that can exchange it, and confirm payments with Fintoc
+> webhooks before you fulfil an order.
 
 ## Dependency injection with an isolated Koin container
 

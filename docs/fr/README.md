@@ -10,9 +10,9 @@ Fintoc, est conçu avec Compose en priorité et utilise Koin pour l'injection de
 > propriétaires respectifs.
 
 > **État : en développement.** Le build, le conteneur d'injection de dépendances, la chaîne de tests, l'application
-> d'exemple et la configuration du Widget (validation de la clé publique, options par produit et constructeur d'URL)
-> sont en place. La vue du Widget, la gestion des événements et le checkout hébergé arrivent fonctionnalité par
-> fonctionnalité via des pull requests.
+> d'exemple, la configuration du Widget (validation de la clé publique, options par produit et constructeur d'URL) et
+> l'analyseur d'événements du Widget sont en place. La vue du Widget, les callbacks d'événements et le checkout hébergé
+> arrivent fonctionnalité par fonctionnalité via des pull requests.
 
 ## Modules
 

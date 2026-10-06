@@ -10,8 +10,8 @@ Compose como primera opción y usa Koin para la inyección de dependencias.
 
 > **Estado: en desarrollo.** Ya están listos el build, el contenedor de inyección de dependencias, el pipeline de
 > pruebas, la app de ejemplo y la configuración del Widget (validación de la llave pública, opciones por producto y
-> constructor de la URL). La vista del Widget, el manejo de eventos y el checkout alojado llegan una función a la vez
-> mediante pull requests.
+> constructor de la URL) y el intérprete de eventos del Widget. La vista del Widget, los callbacks de eventos y el
+> checkout alojado llegan una función a la vez mediante pull requests.
 
 ## Módulos
 
