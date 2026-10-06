@@ -45,8 +45,8 @@ flowchart TB
 | `presentation` | `domain` | `data` |
 | `di` | all layers | — |
 
-Today only the `di` package and the public entry point exist. The other layers are created as features arrive, under the
-base package `mx.dev1.fintoc.sdk`.
+Today the `domain` layer (packages `domain.widget` and `domain.security`), the `di` package and the public entry point
+exist. The other layers are created as features arrive, under the base package `mx.dev1.fintoc.sdk`.
 
 ## Public API and explicit API mode
 
@@ -56,7 +56,36 @@ The SDK enables Kotlin's **explicit API mode**. Every declaration is `internal` 
 | Type | Role |
 |---|---|
 | `Fintoc` | Entry point: `initialize`, `shutdown`, `isInitialized`. |
-| `FintocConfiguration` | Settings: `authToken` and `baseUrl`. Its `toString()` redacts the token so it never reaches logs. |
+| `FintocConfiguration` | Settings: `publicKey` (only `pk_test_` or `pk_live_`; `sk_` secret keys are rejected) and `environment`, deduced from the prefix. Its `toString()` hides the key. |
+| `FintocEnvironment` | `TEST` or `LIVE`. |
+| `FintocWidgetOptions` | What the Widget should do: `Payments`, `Movements` or `Subscriptions`. Each validates its data and hides its tokens in `toString()`. |
+| `FintocCountry`, `FintocHolderType` | Accepted values for `country` and `holder_type`. |
+
+## Widget configuration
+
+Fintoc's Widget is a web page that the SDK shows in a WebView. It reads its settings from the URL query string, so the
+SDK turns your `FintocConfiguration` and your `FintocWidgetOptions` into that URL.
+
+```mermaid
+flowchart LR
+    key["FintocConfiguration\npublicKey"] --> builder["FintocWidgetUrlBuilder"]
+    options["FintocWidgetOptions\nPayments | Movements | Subscriptions"] --> builder
+    builder --> url["https://webview.fintoc.com/widget.html\n?public_key=…&product=…"]
+```
+
+| Options | Product | Parameters sent after `public_key` and `product` |
+|---|---|---|
+| `Payments(sessionToken)` | `payments` (SPEI in Mexico, bank transfer in Chile) | `session_token` |
+| `Movements(holderType, country, linkToken?, webhookUrl?)` | `movements` | `holder_type`, `country`, `link_token`, `webhook_url` |
+| `Subscriptions(widgetToken, holderType, country)` | `subscriptions` | `holder_type`, `country`, `widget_token` |
+
+Safety rules enforced when you create the objects:
+
+- Blank values, values with whitespace and values starting with `sk_` are rejected. Error messages never repeat the
+  rejected value.
+- `webhookUrl` must be an absolute `https` URL.
+- Values are percent-encoded (RFC 3986), so a token cannot add or replace parameters.
+- `toString()` hides the tokens.
 
 ## Dependency injection with an isolated Koin container
 

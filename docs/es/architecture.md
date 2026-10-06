@@ -45,8 +45,8 @@ flowchart TB
 | `presentation` | `domain` | `data` |
 | `di` | todas las capas | — |
 
-Hoy solo existen el paquete `di` y el punto de entrada público. Las demás capas se crean conforme lleguen las funciones,
-bajo el paquete base `mx.dev1.fintoc.sdk`.
+Hoy existen la capa `domain` (paquetes `domain.widget` y `domain.security`), el paquete `di` y el punto de entrada
+público. Las demás capas se crean conforme lleguen las funciones, bajo el paquete base `mx.dev1.fintoc.sdk`.
 
 ## API pública y modo de API explícita
 
@@ -56,7 +56,36 @@ propósito, así que la superficie pública de la librería siempre es intencion
 | Tipo | Función |
 |---|---|
 | `Fintoc` | Punto de entrada: `initialize`, `shutdown`, `isInitialized`. |
-| `FintocConfiguration` | Ajustes: `authToken` y `baseUrl`. Su `toString()` oculta el token para que nunca llegue a los logs. |
+| `FintocConfiguration` | Ajustes: `publicKey` (solo `pk_test_` o `pk_live_`; las llaves secretas `sk_` se rechazan) y `environment`, deducido del prefijo. Su `toString()` oculta la llave. |
+| `FintocEnvironment` | `TEST` o `LIVE`. |
+| `FintocWidgetOptions` | Qué debe hacer el Widget: `Payments`, `Movements` o `Subscriptions`. Cada uno valida sus datos y oculta sus tokens en `toString()`. |
+| `FintocCountry`, `FintocHolderType` | Valores admitidos para `country` y `holder_type`. |
+
+## Configuración del Widget
+
+El Widget de Fintoc es una página web que el SDK muestra en un WebView. Lee sus ajustes de la query string de la URL,
+así que el SDK convierte tu `FintocConfiguration` y tus `FintocWidgetOptions` en esa URL.
+
+```mermaid
+flowchart LR
+    key["FintocConfiguration\npublicKey"] --> builder["FintocWidgetUrlBuilder"]
+    options["FintocWidgetOptions\nPayments | Movements | Subscriptions"] --> builder
+    builder --> url["https://webview.fintoc.com/widget.html\n?public_key=…&product=…"]
+```
+
+| Opciones | Producto | Parámetros enviados después de `public_key` y `product` |
+|---|---|---|
+| `Payments(sessionToken)` | `payments` (SPEI en México, transferencia bancaria en Chile) | `session_token` |
+| `Movements(holderType, country, linkToken?, webhookUrl?)` | `movements` | `holder_type`, `country`, `link_token`, `webhook_url` |
+| `Subscriptions(widgetToken, holderType, country)` | `subscriptions` | `holder_type`, `country`, `widget_token` |
+
+Reglas de seguridad que se aplican al crear los objetos:
+
+- Se rechazan los valores vacíos, con espacios o que empiecen con `sk_`. Los mensajes de error nunca repiten el valor
+  rechazado.
+- `webhookUrl` debe ser una URL `https` absoluta.
+- Los valores se codifican con porcentaje (RFC 3986), así que un token no puede agregar ni reemplazar parámetros.
+- `toString()` oculta los tokens.
 
 ## Inyección de dependencias con un contenedor Koin aislado
 

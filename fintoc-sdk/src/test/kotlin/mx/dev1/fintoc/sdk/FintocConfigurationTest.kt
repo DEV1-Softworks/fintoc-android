@@ -2,42 +2,63 @@ package mx.dev1.fintoc.sdk
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertThrows
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class FintocConfigurationTest {
 
     @Test
-    fun `base url defaults to the production endpoint`() {
-        val configuration = FintocConfiguration(authToken = "token")
+    fun `test public key selects the test environment`() {
+        val configuration = FintocConfiguration(publicKey = "pk_test_abc123")
 
-        assertEquals("https://api.fintoc.com", configuration.baseUrl)
+        assertEquals(FintocEnvironment.TEST, configuration.environment)
     }
 
     @Test
-    fun `custom base url is preserved`() {
-        val configuration = FintocConfiguration(authToken = "token", baseUrl = "https://sandbox.example.com")
+    fun `live public key selects the live environment`() {
+        val configuration = FintocConfiguration(publicKey = "pk_live_abc123")
 
-        assertEquals("https://sandbox.example.com", configuration.baseUrl)
-    }
-
-    @Test(expected = IllegalArgumentException::class)
-    fun `blank auth token is rejected`() {
-        FintocConfiguration(authToken = "   ")
-    }
-
-    @Test(expected = IllegalArgumentException::class)
-    fun `blank base url is rejected`() {
-        FintocConfiguration(authToken = "token", baseUrl = "")
+        assertEquals(FintocEnvironment.LIVE, configuration.environment)
     }
 
     @Test
-    fun `toString never exposes the auth token`() {
-        val configuration = FintocConfiguration(authToken = "super-secret-token")
+    fun `blank public key is rejected`() {
+        assertThrows(IllegalArgumentException::class.java) { FintocConfiguration(publicKey = "   ") }
+    }
 
-        val description = configuration.toString()
+    @Test
+    fun `public key with whitespace is rejected`() {
+        assertThrows(IllegalArgumentException::class.java) { FintocConfiguration(publicKey = "pk_test_ab c") }
+        assertThrows(IllegalArgumentException::class.java) { FintocConfiguration(publicKey = " pk_test_abc") }
+    }
 
-        assertFalse(description.contains("super-secret-token"))
+    @Test
+    fun `secret key is rejected without repeating it in the message`() {
+        val failure = assertThrows(IllegalArgumentException::class.java) {
+            FintocConfiguration(publicKey = "sk_live_super-secret-value")
+        }
+
+        assertTrue(failure.message.orEmpty().contains("secret key"))
+        assertFalse(failure.message.orEmpty().contains("super-secret-value"))
+    }
+
+    @Test
+    fun `key without a known prefix is rejected without repeating it in the message`() {
+        val failure = assertThrows(IllegalArgumentException::class.java) {
+            FintocConfiguration(publicKey = "token-123456")
+        }
+
+        assertTrue(failure.message.orEmpty().contains("pk_test_"))
+        assertFalse(failure.message.orEmpty().contains("token-123456"))
+    }
+
+    @Test
+    fun `toString never exposes the public key`() {
+        val description = FintocConfiguration(publicKey = "pk_live_visible-nowhere").toString()
+
+        assertFalse(description.contains("visible-nowhere"))
         assertTrue(description.contains("<redacted>"))
+        assertTrue(description.contains("LIVE"))
     }
 }

@@ -2,12 +2,16 @@
 
 [English](../../README.md) · [Español](../es/README.md) · [Français](../fr/README.md) · **Português**
 
-SDK em Kotlin e Jetpack Compose para a API da [Fintoc](https://fintoc.com). É o equivalente Android da biblioteca
-[Fintoc Swift](https://github.com/sergiocampama/Fintoc) e foi construído com Compose como primeira opção e Koin para
-injeção de dependências.
+SDK em Kotlin e Jetpack Compose, comunitário e **não oficial**, para adicionar a um app Android os pagamentos da
+[Fintoc](https://fintoc.com) (como o SPEI no México) e conexões bancárias. Ele encapsula o Widget da Fintoc, foi
+construído com Compose como primeira opção e usa Koin para injeção de dependências.
 
-> **Status: fundação.** O build, o contêiner de injeção de dependências, o pipeline de testes e o app de exemplo já
-> estão prontos. As funcionalidades da API (links, contas, movimentações) são adicionadas uma a uma por meio de pull requests.
+> **Sem afiliação com a Fintoc.** É um projeto da comunidade. «Fintoc» é uma marca de seus respectivos proprietários.
+
+> **Status: em desenvolvimento.** O build, o contêiner de injeção de dependências, o pipeline de testes, o app de
+> exemplo e a configuração do Widget (validação da chave pública, opções por produto e construtor de URL) já estão
+> prontos. A tela do Widget, o tratamento de eventos e o checkout hospedado chegam uma funcionalidade por vez por meio
+> de pull requests.
 
 ## Módulos
 
@@ -54,11 +58,28 @@ class MyApplication : Application() {
         super.onCreate()
         Fintoc.initialize(
             context = this,
-            configuration = FintocConfiguration(authToken = "<seu token>"),
+            configuration = FintocConfiguration(publicKey = "pk_test_…"),
         )
     }
 }
 ```
+
+Descreva o que exibir com `FintocWidgetOptions`. Os tokens vêm do seu backend:
+
+```kotlin
+val options = FintocWidgetOptions.Payments(sessionToken = tokenFromYourBackend)
+```
+
+A tela do Widget que exibe essas opções chega em um próximo pull request.
+
+## Modelo de segurança
+
+- O app guarda apenas a **chave pública** (`pk_test_` ou `pk_live_`). O SDK recusa chaves secretas (`sk_…`).
+- Seu backend cria a Checkout Session com a chave secreta e entrega ao app o `session_token` de curta duração; o app o
+  repassa ao SDK.
+- Os tokens nunca são gravados em logs: o `toString()` de cada opção os oculta.
+- O que o Widget informa ao app não é prova de pagamento. Confirme os pagamentos com os webhooks da Fintoc no seu
+  backend.
 
 ## Documentação
 
@@ -70,7 +91,9 @@ class MyApplication : Application() {
 
 ## Créditos e licença
 
-A API está sendo modelada a partir de [sergiocampama/Fintoc](https://github.com/sergiocampama/Fintoc), publicada sob a
-licença MIT (© 2021 Sergio Campamá). Esse aviso é mantido em [NOTICE](../../NOTICE).
+A integração do Widget segue a [documentação pública da Fintoc](https://docs.fintoc.com) e o comportamento do
+[SDK React Native](https://github.com/fintoc-com/fintoc-react-native) oficial. O aviso MIT do cliente Swift comunitário
+[sergiocampama/Fintoc](https://github.com/sergiocampama/Fintoc) (© 2021 Sergio Campamá) é mantido em
+[NOTICE](../../NOTICE) caso código derivado dele seja adicionado.
 
 Este projeto é distribuído sob a [licença Apache 2.0](../../LICENSE).

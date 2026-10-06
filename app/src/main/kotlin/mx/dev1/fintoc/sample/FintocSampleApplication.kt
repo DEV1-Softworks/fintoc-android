@@ -10,12 +10,13 @@ class FintocSampleApplication : Application() {
         super.onCreate()
         Fintoc.initialize(
             context = this,
-            configuration = FintocConfiguration(authToken = SAMPLE_AUTH_TOKEN),
+            configuration = FintocConfiguration(publicKey = SAMPLE_PUBLIC_KEY),
         )
     }
 
     private companion object {
-        // Placeholder: the sample does not call the API yet. Never ship real credentials in an app.
-        const val SAMPLE_AUTH_TOKEN = "sample-auth-token"
+        // Placeholder. Use your own pk_test_ key from the Fintoc dashboard. Public keys are safe to ship in an app;
+        // secret keys (sk_) are not, and the SDK rejects them.
+        const val SAMPLE_PUBLIC_KEY = "pk_test_sample_public_key"
     }
 }
