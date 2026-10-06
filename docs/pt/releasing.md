@@ -48,8 +48,10 @@ dependencies {
 
 A versão é `VERSION_NAME` em `gradle.properties`. O projeto segue o [Versionamento Semântico](https://semver.org). Entre
 versões ela termina em `-SNAPSHOT`. O Maven Central nunca aceita a mesma versão duas vezes, então um erro se corrige com
-uma versão nova. Enquanto a versão maior for 0, uma versão menor pode mudar a API pública: o
-[registro de mudanças](changelog.md) avisa quando isso acontece.
+uma versão nova. A primeira versão é a 1.0.0, então a API pública é um compromisso desde o início: uma mudança que a
+quebre sobe a versão maior, um recurso novo sobe a versão menor e uma correção sobe a versão de correção. Só é pública o
+que a documentação da API lista: tudo o que está marcado como `internal` pode mudar livremente. O
+[registro de mudanças](changelog.md) lista cada mudança.
 
 ## Passos da publicação
 

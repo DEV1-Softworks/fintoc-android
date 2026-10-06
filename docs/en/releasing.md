@@ -48,8 +48,10 @@ dependencies {
 
 The version is `VERSION_NAME` in `gradle.properties`. The project follows [Semantic Versioning](https://semver.org). Between
 releases it ends in `-SNAPSHOT`. Maven Central never accepts the same version twice, so a mistake is fixed with a new
-version. While the major version is 0, a minor version may change the public API: the
-[changelog](changelog.md) says so when it does.
+version. The first release is 1.0.0, so the public API is a commitment from the start: a change that breaks it raises the
+major version, a new feature raises the minor version and a fix raises the patch version. Only what the API
+documentation lists is public: everything marked `internal` is free to change. The [changelog](changelog.md) lists each
+change.
 
 ## Release steps
 
