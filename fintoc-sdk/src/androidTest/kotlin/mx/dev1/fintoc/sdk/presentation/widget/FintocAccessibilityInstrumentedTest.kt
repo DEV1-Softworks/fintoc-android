@@ -107,7 +107,7 @@ class FintocAccessibilityInstrumentedTest {
         composeRule.setContent {
             FintocWidgetHostTheme {
                 FintocWidgetHostScreen(hasSucceeded = false, language = FintocLanguage.ENGLISH, onLeave = {}) { modifier ->
-                    FintocWidgetWebView(url = pageWithScript(""), onEvent = {}, modifier = modifier)
+                    FintocWidgetWebView(url = pageWithScript(""), onEvent = {}, externalLinkLauncher = {}, modifier = modifier)
                 }
             }
         }
@@ -121,7 +121,7 @@ class FintocAccessibilityInstrumentedTest {
             FintocWidgetHostTheme {
                 AtLargestAccessibilitySizes {
                     FintocWidgetHostScreen(hasSucceeded = true, language = FintocLanguage.ENGLISH, onLeave = {}) { modifier ->
-                        FintocWidgetWebView(url = pageWithScript(""), onEvent = {}, modifier = modifier)
+                        FintocWidgetWebView(url = pageWithScript(""), onEvent = {}, externalLinkLauncher = {}, modifier = modifier)
                     }
                 }
             }

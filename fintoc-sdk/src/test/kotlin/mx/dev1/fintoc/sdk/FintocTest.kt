@@ -2,6 +2,8 @@ package mx.dev1.fintoc.sdk
 
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import mx.dev1.fintoc.sdk.domain.widget.FintocWidgetOptions
+import mx.dev1.fintoc.sdk.presentation.host.FintocWidgetRequests
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
@@ -36,6 +38,39 @@ class FintocTest {
         val failure = assertThrows(IllegalStateException::class.java) { Fintoc.requireKoin() }
 
         assertTrue(failure.message.orEmpty().contains("Fintoc.initialize"))
+    }
+
+    @Test
+    fun `the dependency graph is only there while the sdk is initialized`() {
+        assertNull(Fintoc.koinOrNull())
+
+        Fintoc.initialize(applicationContext, FintocConfiguration(publicKey = "pk_test_token"))
+        assertSame(Fintoc.requireKoin(), Fintoc.koinOrNull())
+
+        Fintoc.shutdown()
+        assertNull(Fintoc.koinOrNull())
+    }
+
+    @Test
+    fun `shutdown forgets the session tokens of screens that were prepared`() {
+        Fintoc.initialize(applicationContext, FintocConfiguration(publicKey = "pk_test_token"))
+        val registry = Fintoc.requireKoin().get<FintocWidgetRequests>()
+        val requestId = registry.register(FintocWidgetOptions.Payments(sessionToken = "cs_secret"))
+
+        Fintoc.shutdown()
+
+        assertNull(registry.find(requestId))
+    }
+
+    @Test
+    fun `initializing again forgets the session tokens of screens that were prepared`() {
+        Fintoc.initialize(applicationContext, FintocConfiguration(publicKey = "pk_test_token"))
+        val requestId = Fintoc.requireKoin().get<FintocWidgetRequests>()
+            .register(FintocWidgetOptions.Payments(sessionToken = "cs_secret"))
+
+        Fintoc.initialize(applicationContext, FintocConfiguration(publicKey = "pk_test_token"))
+
+        assertNull(Fintoc.requireKoin().get<FintocWidgetRequests>().find(requestId))
     }
 
     @Test

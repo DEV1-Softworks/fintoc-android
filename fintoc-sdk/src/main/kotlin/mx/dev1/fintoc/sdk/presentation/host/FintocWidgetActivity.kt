@@ -31,17 +31,19 @@ internal class FintocWidgetActivity : ComponentActivity() {
         window.setFlags(WindowManager.LayoutParams.FLAG_SECURE, WindowManager.LayoutParams.FLAG_SECURE)
         enableEdgeToEdge()
 
+        val koin = Fintoc.koinOrNull()
         val currentRequestId = intent.getStringExtra(FintocWidgetContract.EXTRA_REQUEST_ID)
-        val options = currentRequestId?.let(FintocWidgetRequests::find)
-        if (currentRequestId == null || options == null) {
-            // Typically the system restored this screen after the process died, and the session token is gone.
+        val options = currentRequestId?.let { requestId -> koin?.get<FintocWidgetRequests>()?.find(requestId) }
+        if (koin == null || currentRequestId == null || options == null) {
+            // Typically the system restored this screen after the process died: the session token is gone, and so
+            // may be the initialization of the SDK.
             setResult(Activity.RESULT_CANCELED)
             finish()
             return
         }
         requestId = currentRequestId
 
-        val language = Fintoc.requireKoin().get<FintocConfiguration>().language
+        val language = koin.get<FintocConfiguration>().language
         setContent {
             FintocWidgetHostTheme {
                 var hasSucceeded by remember { mutableStateOf(false) }
@@ -56,7 +58,8 @@ internal class FintocWidgetActivity : ComponentActivity() {
                                 when (event) {
                                     is FintocWidgetEvent.Succeeded -> {
                                         // Set now, so that going back after a success also reports it.
-                                        setResult(Activity.RESULT_OK, FintocWidgetContract.resultIntent(event.linkIntent))
+                                        val resultIntent = FintocWidgetContract.resultIntent(event.linkIntent)
+                                        setResult(Activity.RESULT_OK, resultIntent)
                                         hasSucceeded = true
                                     }
                                     FintocWidgetEvent.Exited -> {
@@ -76,7 +79,10 @@ internal class FintocWidgetActivity : ComponentActivity() {
     }
 
     override fun onDestroy() {
-        if (isFinishing) requestId?.let(FintocWidgetRequests::remove)
+        val finishedRequestId = requestId
+        if (isFinishing && finishedRequestId != null) {
+            Fintoc.koinOrNull()?.get<FintocWidgetRequests>()?.remove(finishedRequestId)
+        }
         super.onDestroy()
     }
 }

@@ -10,12 +10,14 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import mx.dev1.fintoc.sdk.Fintoc
 import mx.dev1.fintoc.sdk.FintocConfiguration
 import mx.dev1.fintoc.sdk.domain.widget.FintocWidgetEvent
 import mx.dev1.fintoc.sdk.domain.widget.FintocWidgetOptions
 import mx.dev1.fintoc.sdk.domain.widget.FintocWidgetUrlBuilder
 import mx.dev1.fintoc.sdk.presentation.localization.rememberFintocStrings
+import org.koin.core.parameter.parametersOf
 
 /**
  * Shows the Fintoc Widget, configured by [options], and reports what happens inside it through [onEvent].
@@ -57,10 +59,19 @@ public fun FintocWidget(
     onEvent: (FintocWidgetEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val configuration = remember { Fintoc.requireKoin().get<FintocConfiguration>() }
+    val context = LocalContext.current
+    val koin = remember { Fintoc.requireKoin() }
+    val configuration = remember(koin) { koin.get<FintocConfiguration>() }
+    val externalLinkLauncher = remember(koin, context) { koin.get<ExternalLinkLauncher> { parametersOf(context) } }
     val widgetUrl = remember(configuration, options) { FintocWidgetUrlBuilder.build(configuration.publicKey, options) }
 
-    FintocWidgetWebView(url = widgetUrl, onEvent = onEvent, modifier = modifier, language = configuration.language)
+    FintocWidgetWebView(
+        url = widgetUrl,
+        onEvent = onEvent,
+        externalLinkLauncher = externalLinkLauncher,
+        modifier = modifier,
+        language = configuration.language,
+    )
 }
 
 /**
@@ -112,6 +123,8 @@ public fun FintocWidget(
         FintocSessionTokenState.Failed -> Box(modifier = modifier) {
             FintocWidgetFailure(strings, onRetry = { attempt += 1 })
         }
-        is FintocSessionTokenState.Ready -> FintocWidget(options = state.options, onEvent = onEvent, modifier = modifier)
+        is FintocSessionTokenState.Ready -> {
+            FintocWidget(options = state.options, onEvent = onEvent, modifier = modifier)
+        }
     }
 }

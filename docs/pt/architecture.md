@@ -282,14 +282,31 @@ sequenceDiagram
     Host->>Fintoc: initialize(context, configuration)
     Fintoc->>Container: fecha o contêiner anterior, se houver
     Fintoc->>Container: FintocKoinContainer(context, configuration)
-    Container->>Koin: koinApplication { modules(coreModule) }
-    Note over Koin: Registra Context (contexto da aplicação)<br/>e FintocConfiguration
+    Container->>Koin: koinApplication { modules(coreModule, widgetModule) }
     Host->>Fintoc: shutdown()
     Fintoc->>Container: close()
+    Container->>Koin: close(), que executa os ganchos onClose
 ```
 
+O que vive no contêiner, e por quê:
+
+| Módulo | Definição | Tipo | Por que está no contêiner |
+|---|---|---|---|
+| `coreModule` | `Context` | `single` | O contexto da aplicação, nunca uma Activity, então nada vaza. |
+| `coreModule` | `FintocConfiguration` | `single` | As configurações dadas a `Fintoc.initialize`. |
+| `widgetModule` | `FintocWidgetRequests` | `single`, com `onClose` | Guarda os session tokens das telas do host com Activity. É esvaziado quando o contêiner fecha, então `Fintoc.shutdown()`, ou inicializar de novo, esquece todos os tokens. |
+| `widgetModule` | `ExternalLinkLauncher` | `factory` | Precisa do contexto em que o Widget é mostrado, então é criado com `parametersOf(context)`. |
+
+A regra: **o contêiner é dono do que tem estado ou depende do Android.** Funções puras, sem nada a liberar, como
+`FintocWidgetUrlBuilder`, `FintocWidgetNavigationPolicy` e `FintocWidgetRedirectParser`, continuam sendo objetos simples
+do Kotlin: injetá-las só acrescentaria indireção.
+
 O código interno obtém suas dependências com `Fintoc.requireKoin()`. Se o app hospedeiro esquecer de chamar `initialize`,
-a chamada falha imediatamente com uma mensagem explicando o que fazer.
+a chamada falha imediatamente com uma mensagem explicando o que fazer. O código que não pode falhar sem o SDK, como uma
+Activity que o sistema restaura depois que o processo morreu, usa `Fintoc.koinOrNull()` e fecha.
+
+O SDK não precisa de regras de consumidor adicionais para o R8. Uma compilação release minificada com redução de
+recursos foi verificada em um dispositivo real: o host com Activity abriu e resolveu tudo pelo Koin.
 
 ## Decisões de build
 

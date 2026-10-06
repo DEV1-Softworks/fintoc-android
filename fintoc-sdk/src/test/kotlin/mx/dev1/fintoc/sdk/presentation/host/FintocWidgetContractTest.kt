@@ -35,7 +35,6 @@ class FintocWidgetContractTest {
     @After
     fun tearDown() {
         Fintoc.shutdown()
-        FintocWidgetRequests.clear()
     }
 
     @Test
@@ -51,7 +50,7 @@ class FintocWidgetContractTest {
         val intent = contract.createIntent(context, options)
 
         val requestId = intent.getStringExtra(FintocWidgetContract.EXTRA_REQUEST_ID)
-        assertEquals(options, FintocWidgetRequests.find(requestId.orEmpty()))
+        assertEquals(options, Fintoc.requireKoin().get<FintocWidgetRequests>().find(requestId.orEmpty()))
         assertEquals(setOf(FintocWidgetContract.EXTRA_REQUEST_ID), intent.extras?.keySet())
         assertFalse(intent.toString().contains("cs_secret_session_token"))
         assertFalse(intent.extras.toString().contains("cs_secret_session_token"))

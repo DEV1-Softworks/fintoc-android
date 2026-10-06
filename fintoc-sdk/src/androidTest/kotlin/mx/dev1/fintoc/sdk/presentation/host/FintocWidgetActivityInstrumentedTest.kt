@@ -46,7 +46,6 @@ class FintocWidgetActivityInstrumentedTest {
     @After
     fun tearDown() {
         Fintoc.shutdown()
-        FintocWidgetRequests.clear()
     }
 
     @Test
