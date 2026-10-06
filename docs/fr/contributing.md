@@ -52,7 +52,7 @@ des données périmées ou absentes.
 
 ### Conseils pour les tests instrumentés
 
-- Utilisez un appareil physique avec le débogage USB activé, ou un émulateur sous Android 9 ou supérieur.
+- Utilisez un appareil physique avec le débogage USB activé, ou un émulateur sous Android 6.0 (API 23) ou supérieur.
 - **Gardez l'écran allumé et déverrouillé** pendant l'exécution des tests. Si l'écran s'éteint, les tests Compose échouent
   avec `No compose hierarchies found in the app`.
 - Espresso 3.7.0 ou supérieur est nécessaire pour fonctionner sur Android 16 (déjà déclaré dans le catalogue de versions).

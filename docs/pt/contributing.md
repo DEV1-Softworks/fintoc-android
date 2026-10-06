@@ -52,7 +52,7 @@ desatualizados ou inexistentes.
 
 ### Dicas para os testes instrumentados
 
-- Use um dispositivo físico com a depuração USB ativada, ou um emulador com Android 9 ou superior.
+- Use um dispositivo físico com a depuração USB ativada, ou um emulador com Android 6.0 (API 23) ou superior.
 - **Mantenha a tela ligada e desbloqueada** enquanto os testes rodam. Se a tela apagar, os testes de Compose falham com
   `No compose hierarchies found in the app`.
 - O Espresso 3.7.0 ou superior é necessário para rodar no Android 16 (já está declarado no catálogo de versões).
