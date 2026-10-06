@@ -45,8 +45,8 @@ flowchart TB
 | `presentation` | `domain` | `data` |
 | `di` | todas as camadas | — |
 
-Hoje existem apenas o pacote `di` e o ponto de entrada público. As demais camadas são criadas conforme as
-funcionalidades chegam, sob o pacote base `mx.dev1.fintoc.sdk`.
+Hoje existem a camada `domain` (pacotes `domain.widget` e `domain.security`), o pacote `di` e o ponto de entrada
+público. As demais camadas são criadas conforme as funcionalidades chegam, sob o pacote base `mx.dev1.fintoc.sdk`.
 
 ## API pública e modo de API explícita
 
@@ -56,7 +56,36 @@ de propósito, então a superfície pública da biblioteca é sempre intencional
 | Tipo | Função |
 |---|---|
 | `Fintoc` | Ponto de entrada: `initialize`, `shutdown`, `isInitialized`. |
-| `FintocConfiguration` | Configurações: `authToken` e `baseUrl`. Seu `toString()` oculta o token para que ele nunca apareça em logs. |
+| `FintocConfiguration` | Configurações: `publicKey` (somente `pk_test_` ou `pk_live_`; chaves secretas `sk_` são recusadas) e `environment`, deduzido do prefixo. Seu `toString()` oculta a chave. |
+| `FintocEnvironment` | `TEST` ou `LIVE`. |
+| `FintocWidgetOptions` | O que o Widget deve fazer: `Payments`, `Movements` ou `Subscriptions`. Cada um valida seus dados e oculta seus tokens no `toString()`. |
+| `FintocCountry`, `FintocHolderType` | Valores aceitos para `country` e `holder_type`. |
+
+## Configuração do Widget
+
+O Widget da Fintoc é uma página web que o SDK exibe em um WebView. Ele lê suas configurações da query string da URL,
+então o SDK transforma seu `FintocConfiguration` e seus `FintocWidgetOptions` nessa URL.
+
+```mermaid
+flowchart LR
+    key["FintocConfiguration\npublicKey"] --> builder["FintocWidgetUrlBuilder"]
+    options["FintocWidgetOptions\nPayments | Movements | Subscriptions"] --> builder
+    builder --> url["https://webview.fintoc.com/widget.html\n?public_key=…&product=…"]
+```
+
+| Opções | Produto | Parâmetros enviados depois de `public_key` e `product` |
+|---|---|---|
+| `Payments(sessionToken)` | `payments` (SPEI no México, transferência bancária no Chile) | `session_token` |
+| `Movements(holderType, country, linkToken?, webhookUrl?)` | `movements` | `holder_type`, `country`, `link_token`, `webhook_url` |
+| `Subscriptions(widgetToken, holderType, country)` | `subscriptions` | `holder_type`, `country`, `widget_token` |
+
+Regras de segurança aplicadas ao criar os objetos:
+
+- Valores vazios, com espaços ou que comecem com `sk_` são recusados. As mensagens de erro nunca repetem o valor
+  recusado.
+- `webhookUrl` deve ser uma URL `https` absoluta.
+- Os valores são codificados com porcentagem (RFC 3986), então um token não pode adicionar nem substituir parâmetros.
+- `toString()` oculta os tokens.
 
 ## Injeção de dependências com um contêiner Koin isolado
 
