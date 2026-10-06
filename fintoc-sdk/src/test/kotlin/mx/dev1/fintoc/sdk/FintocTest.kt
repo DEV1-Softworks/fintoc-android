@@ -40,7 +40,7 @@ class FintocTest {
 
     @Test
     fun `initialize exposes the configuration through the dependency graph`() {
-        val configuration = FintocConfiguration(authToken = "token")
+        val configuration = FintocConfiguration(publicKey = "pk_test_token")
 
         Fintoc.initialize(applicationContext, configuration)
 
@@ -53,15 +53,15 @@ class FintocTest {
         val activityContext: Context = mock()
         whenever(activityContext.applicationContext).thenReturn(applicationContext)
 
-        Fintoc.initialize(activityContext, FintocConfiguration(authToken = "token"))
+        Fintoc.initialize(activityContext, FintocConfiguration(publicKey = "pk_test_token"))
 
         assertSame(applicationContext, Fintoc.requireKoin().get<Context>())
     }
 
     @Test
     fun `initialize again replaces the previous configuration`() {
-        val replacement = FintocConfiguration(authToken = "replacement-token")
-        Fintoc.initialize(applicationContext, FintocConfiguration(authToken = "first-token"))
+        val replacement = FintocConfiguration(publicKey = "pk_test_replacement")
+        Fintoc.initialize(applicationContext, FintocConfiguration(publicKey = "pk_test_first"))
 
         Fintoc.initialize(applicationContext, replacement)
 
@@ -70,7 +70,7 @@ class FintocTest {
 
     @Test
     fun `shutdown releases the sdk and can be repeated`() {
-        Fintoc.initialize(applicationContext, FintocConfiguration(authToken = "token"))
+        Fintoc.initialize(applicationContext, FintocConfiguration(publicKey = "pk_test_token"))
 
         Fintoc.shutdown()
         Fintoc.shutdown()
@@ -80,7 +80,7 @@ class FintocTest {
 
     @Test
     fun `dependency graph is isolated from the global koin context`() {
-        Fintoc.initialize(applicationContext, FintocConfiguration(authToken = "token"))
+        Fintoc.initialize(applicationContext, FintocConfiguration(publicKey = "pk_test_token"))
 
         assertNull(GlobalContext.getOrNull())
     }

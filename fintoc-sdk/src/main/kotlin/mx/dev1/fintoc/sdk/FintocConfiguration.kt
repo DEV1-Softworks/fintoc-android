@@ -1,25 +1,40 @@
 package mx.dev1.fintoc.sdk
 
+import mx.dev1.fintoc.sdk.domain.security.SecretKeyGuard
+
 /**
  * Settings required to initialize the SDK through [Fintoc.initialize].
  *
- * @property authToken Token sent in the `Authorization` header of every API request.
- * @property baseUrl Root URL of the Fintoc API. Override it only to target a different environment.
+ * The SDK only ever needs the **public** key. Secret keys (`sk_…`) give full access to your Fintoc account, so they
+ * must stay on your backend and are rejected here.
+ *
+ * @property publicKey Public key of your Fintoc account: `pk_test_…` for the sandbox or `pk_live_…` for production.
+ * @throws IllegalArgumentException If the key is blank, contains whitespace, looks like a secret key, or does not
+ * start with `pk_test_` or `pk_live_`. The message never repeats the rejected value.
  */
 public data class FintocConfiguration(
-    val authToken: String,
-    val baseUrl: String = DEFAULT_BASE_URL,
+    val publicKey: String,
 ) {
     init {
-        require(authToken.isNotBlank()) { "authToken must not be blank." }
-        require(baseUrl.isNotBlank()) { "baseUrl must not be blank." }
+        require(publicKey.isNotBlank()) { "publicKey must not be blank." }
+        require(publicKey.none { character -> character.isWhitespace() }) {
+            "publicKey must not contain whitespace."
+        }
+        SecretKeyGuard.requireNotSecretKey(parameterName = "publicKey", value = publicKey)
+        require(publicKey.startsWith(TEST_KEY_PREFIX) || publicKey.startsWith(LIVE_KEY_PREFIX)) {
+            "publicKey must start with $TEST_KEY_PREFIX or $LIVE_KEY_PREFIX."
+        }
     }
 
-    /** Hides [authToken] so credentials never reach logs or crash reports. */
-    override fun toString(): String = "FintocConfiguration(authToken=<redacted>, baseUrl=$baseUrl)"
+    /** Environment deduced from the [publicKey] prefix. */
+    public val environment: FintocEnvironment
+        get() = if (publicKey.startsWith(LIVE_KEY_PREFIX)) FintocEnvironment.LIVE else FintocEnvironment.TEST
 
-    public companion object {
-        /** Production endpoint of the Fintoc API. */
-        public const val DEFAULT_BASE_URL: String = "https://api.fintoc.com"
+    /** Shows the environment only, so keys never reach logs or crash reports even though public keys are not secret. */
+    override fun toString(): String = "FintocConfiguration(publicKey=<redacted>, environment=$environment)"
+
+    private companion object {
+        const val TEST_KEY_PREFIX = "pk_test_"
+        const val LIVE_KEY_PREFIX = "pk_live_"
     }
 }

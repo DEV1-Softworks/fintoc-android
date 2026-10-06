@@ -23,7 +23,7 @@ class FintocInstrumentedTest {
 
     @Test
     fun initializeBuildsTheDependencyGraphOnARealDevice() {
-        val configuration = FintocConfiguration(authToken = "token")
+        val configuration = FintocConfiguration(publicKey = "pk_test_token")
 
         Fintoc.initialize(applicationContext, configuration)
 
@@ -34,7 +34,7 @@ class FintocInstrumentedTest {
 
     @Test
     fun shutdownReleasesTheSdk() {
-        Fintoc.initialize(applicationContext, FintocConfiguration(authToken = "token"))
+        Fintoc.initialize(applicationContext, FintocConfiguration(publicKey = "pk_test_token"))
 
         Fintoc.shutdown()
 
