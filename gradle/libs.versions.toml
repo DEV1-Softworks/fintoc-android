@@ -4,11 +4,13 @@ kotlin = "2.4.20"
 composeBom = "2026.09.00"
 activityCompose = "1.13.0"
 browser = "1.10.0"
+dokka = "2.2.0"
 coreKtx = "1.19.1"
 koinBom = "4.2.2"
 coroutines = "1.11.0"
 jacoco = "0.8.15"
 junit = "4.13.2"
+mavenPublish = "0.37.0"
 mockito = "5.24.0"
 mockitoKotlin = "6.4.0"
 robolectric = "4.17"
@@ -47,4 +49,6 @@ robolectric = { group = "org.robolectric", name = "robolectric", version.ref = "
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+dokka = { id = "org.jetbrains.dokka", version.ref = "dokka" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+maven-publish = { id = "com.vanniktech.maven.publish", version.ref = "mavenPublish" }

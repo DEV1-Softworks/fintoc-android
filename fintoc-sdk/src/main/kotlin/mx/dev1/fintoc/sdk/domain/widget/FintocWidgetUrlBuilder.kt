@@ -6,9 +6,9 @@ package mx.dev1.fintoc.sdk.domain.widget
  * The Widget reads its whole configuration from the query string, so every value is percent-encoded and parameters
  * always come out in the same order.
  *
- * The final `_on_event=true` turns on the Widget's `fintocwidget://event/…` redirects. Fintoc's documentation says
- * they are on by default, but the live Widget script only registers its event callback when this parameter is
- * present, with any value.
+ * The final `_on_event=true` asks the Widget to report its `fintocwidget://event/…` redirects. Fintoc's documentation
+ * says they are on by default, but the Widget's script reads this parameter too, so it is always sent. Events were
+ * confirmed to arrive with it on a real sandbox session.
  */
 internal object FintocWidgetUrlBuilder {
     const val WIDGET_URL = "https://webview.fintoc.com/widget.html"

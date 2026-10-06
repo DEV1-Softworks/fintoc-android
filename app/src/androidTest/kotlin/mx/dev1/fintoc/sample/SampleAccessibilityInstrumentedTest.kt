@@ -9,6 +9,7 @@ import androidx.compose.ui.test.junit4.v2.createAndroidComposeRule
 import androidx.compose.ui.unit.Density
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.google.android.apps.common.testing.accessibility.framework.AccessibilityCheckPreset
+import com.google.android.apps.common.testing.accessibility.framework.AccessibilityCheckResult
 import com.google.android.apps.common.testing.accessibility.framework.integrations.espresso.AccessibilityValidator
 import mx.dev1.fintoc.sample.checkout.HostedCheckoutDemo
 import mx.dev1.fintoc.sample.checkout.HostedOpenResult
@@ -37,7 +38,7 @@ class SampleAccessibilityInstrumentedTest {
     private val validator = AccessibilityValidator()
         .setCheckPreset(AccessibilityCheckPreset.LATEST)
         .setRunChecksFromRootView(true)
-        .setThrowExceptionForErrors(true)
+        .setThrowExceptionFor(AccessibilityCheckResult.AccessibilityCheckResultType.ERROR)
 
     @Before
     fun checkEveryInteraction() {

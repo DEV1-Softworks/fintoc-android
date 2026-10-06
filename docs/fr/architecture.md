@@ -294,8 +294,8 @@ résultat dans `onCreate` et dans `onNewIntent` :
   client peut fermer l'onglet sans jamais revenir. Fintoc dit la même chose : utilisez les webhooks. Fermer la Custom Tab
   n'apprend rien à votre app : actualisez donc l'état de la commande depuis votre backend quand votre écran reprend.
 - **Mettez une valeur imprévisible dans vos propres adresses**, comme le `n` de l'exemple. Le SDK exige que chaque
-  paramètre de query de vos adresses revienne avec la même valeur. La documentation de Fintoc montre des adresses sans
-  query : vérifiez dans le sandbox que votre Checkout Session l'accepte et la renvoie.
+  paramètre de query de vos adresses revienne avec la même valeur. Vérifié dans le sandbox de Fintoc : Fintoc accepte
+  une query string dans votre `success_url` et la renvoie.
 - **Préférez les App Links vérifiés aux schémas personnalisés.** N'importe quelle autre app peut revendiquer un schéma
   personnalisé et recevrait la redirection, valeur secrète comprise. Un App Link vérifié ne peut pas être revendiqué.
 - **Utilisez `launchMode="singleTask"`** pour l'Activity qui reçoit les adresses de retour. Vérifié sur un Pixel 10 avec
@@ -398,6 +398,9 @@ ressources a été vérifié sur un appareil réel : l'hôte Activity s'est ouve
 | Jetpack Compose | BOM 2026.09.00 | Interface Compose en priorité. Le XML n'est utilisé que là où la plateforme l'impose (manifeste, thème de fenêtre). |
 | Bytecode Java | 11 | Permet à un maximum d'applications hôtes d'utiliser la bibliothèque. |
 | Espresso | 3.7.0, aussi épinglé dans `fintoc-sdk` | Les tests d'UI Compose utilisent un point d'accroche d'Espresso qui échoue sur les versions récentes d'Android quand une ancienne version est tirée indirectement. |
+| Publication | `com.vanniktech.maven.publish` 0.37.0 | Publie sur Maven Central avec les sources, la documentation de l'API et des signatures GPG. Les coordonnées et les données du POM sont dans `gradle.properties`. |
+| Documentation de l'API | Dokka 2.2.0 | Transforme le KDoc de l'API publique en jar javadoc. Le doclet Java ne lit pas Kotlin : sans Dokka, le jar ne contient que des feuilles de style. |
+| Niveau de langage Kotlin | 2.2, bibliothèque standard 2.2.0 | Un compilateur lit les métadonnées jusqu'à une version plus récente que la sienne, et Gradle donne à une app la bibliothèque standard la plus récente que demande une dépendance. Compiler avec le 2.4 de ce build forcerait un Kotlin plus récent sur toutes les apps. Vérifié avec une app consommatrice en Kotlin 2.2.0. |
 | Versions | `gradle/libs.versions.toml` | Un seul endroit pour toutes les versions de dépendances. |
 
 ## Tests et couverture

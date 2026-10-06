@@ -289,8 +289,8 @@ Bom saber:
   aba e nunca voltar. A Fintoc diz o mesmo: use webhooks. Fechar a Custom Tab não diz nada ao seu app, então atualize o
   status do pedido a partir do seu backend quando sua tela for retomada.
 - **Ponha um valor imprevisível nos seus próprios endereços**, como o `n` do exemplo. O SDK exige que cada parâmetro de
-  query dos seus endereços volte com o mesmo valor. A documentação da Fintoc mostra endereços sem query, então confirme
-  no sandbox que sua Checkout Session a aceita e a devolve.
+  query dos seus endereços volte com o mesmo valor. Verificado no sandbox da Fintoc: a Fintoc aceita uma query string
+  no seu `success_url` e a devolve.
 - **Prefira App Links verificados a esquemas personalizados.** Qualquer outro app pode reivindicar um esquema
   personalizado e receberia o redirecionamento, valor secreto incluído. Um App Link verificado não pode ser reivindicado.
 - **Use `launchMode="singleTask"`** na Activity que recebe os endereços de retorno. Verificado em um Pixel 10 com
@@ -391,6 +391,9 @@ recursos foi verificada em um dispositivo real: o host com Activity abriu e reso
 | Jetpack Compose | BOM 2026.09.00 | UI com Compose como primeira opção. O XML só é usado onde a plataforma exige (manifest, tema da janela). |
 | Bytecode Java | 11 | Permite que o maior número possível de apps hospedeiros consuma a biblioteca. |
 | Espresso | 3.7.0, também fixado em `fintoc-sdk` | Os testes de UI do Compose usam um gancho do Espresso que falha em versões recentes do Android quando uma versão antiga entra de forma indireta. |
+| Publicação | `com.vanniktech.maven.publish` 0.37.0 | Publica no Maven Central com fontes, documentação da API e assinaturas GPG. As coordenadas e os dados do POM ficam em `gradle.properties`. |
+| Documentação da API | Dokka 2.2.0 | Transforma o KDoc da API pública no jar de javadoc. O doclet do Java não lê Kotlin, então sem o Dokka o jar só traz folhas de estilo. |
+| Nível de linguagem do Kotlin | 2.2, biblioteca padrão 2.2.0 | Um compilador lê metadados de até uma versão mais nova que a sua, e o Gradle entrega a um app a biblioteca padrão mais nova que qualquer dependência peça. Compilar com o 2.4 deste build forçaria um Kotlin mais novo em todos os apps. Verificado com um app consumidor no Kotlin 2.2.0. |
 | Versões | `gradle/libs.versions.toml` | Um único lugar para todas as versões de dependências. |
 
 ## Testes e cobertura

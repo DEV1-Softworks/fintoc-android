@@ -15,8 +15,8 @@ public sealed interface FintocWidgetOptions {
     /**
      * Pays with a bank transfer: SPEI in Mexico, bank transfer in Chile.
      *
-     * @property sessionToken Token your backend gets by creating a Checkout Session with `ui_mode` set to `embedded`.
-     * Mint a new one for every payment attempt.
+     * @property sessionToken The `session_token` of a Checkout Session, which your backend creates with its secret key.
+     * See Fintoc's API reference for the session settings that produce one. Mint a new one for every payment attempt.
      */
     public data class Payments(val sessionToken: String) : FintocWidgetOptions {
         init {
