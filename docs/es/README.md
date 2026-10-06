@@ -10,8 +10,9 @@ Compose como primera opción y usa Koin para la inyección de dependencias.
 
 > **Estado: en desarrollo.** Ya están listos el build, el contenedor de inyección de dependencias, el pipeline de
 > pruebas, la app de ejemplo y la configuración del Widget (validación de la llave pública, opciones por producto y
-> constructor de la URL) y el intérprete de eventos del Widget. La vista del Widget, los callbacks de eventos y el
-> checkout alojado llegan una función a la vez mediante pull requests.
+> constructor de la URL), el intérprete de eventos del Widget y el `FintocWidget` de Compose. El host con Activity para
+> apps sin Compose, el cambio manual de idioma, el checkout alojado y la app de ejemplo completa llegan una función a
+> la vez mediante pull requests.
 
 ## Módulos
 
@@ -70,7 +71,25 @@ Describe qué mostrar con `FintocWidgetOptions`. Los tokens vienen de tu backend
 val options = FintocWidgetOptions.Payments(sessionToken = tokenFromYourBackend)
 ```
 
-La vista del Widget que muestra estas opciones llega en un próximo pull request.
+Muestra el Widget desde Compose con `FintocWidget`. Cuando el session token viene de tu backend, pasa un proveedor
+`suspend`: el SDK lo llama una vez por intento y muestra un indicador de progreso mientras espera.
+
+```kotlin
+FintocWidget(
+    sessionTokenProvider = { myBackend.createSessionToken(orderId) },
+    onEvent = { event ->
+        when (event) {
+            is FintocWidgetEvent.Succeeded -> showReceipt()
+            FintocWidgetEvent.Exited -> closeScreen()
+            is FintocWidgetEvent.Occurred -> Unit
+        }
+    },
+    modifier = Modifier.fillMaxSize(),
+)
+```
+
+Si ya tienes las opciones, por ejemplo `Movements`, que no necesita token, pásalas directamente con
+`FintocWidget(options = …, onEvent = …)`. El SDK declara por sí mismo el permiso `INTERNET`, así que tu app no tiene que hacerlo.
 
 ## Modelo de seguridad
 
@@ -78,6 +97,13 @@ La vista del Widget que muestra estas opciones llega en un próximo pull request
 - Tu backend crea la Checkout Session con su llave secreta y entrega a la app el `session_token` de corta duración; la
   app se lo pasa al SDK.
 - Los tokens nunca se registran en logs: el `toString()` de cada opción los oculta.
+- El Widget corre en un WebView endurecido: sin acceso a archivos ni a proveedores de contenido, sin subrecursos
+  inseguros, con Safe Browsing activo, sin interfaz JavaScript y sin aceptar nunca errores de certificado. El SDK jamás
+  activa la depuración del WebView.
+- El WebView se queda en los hosts de Fintoc (`webview.fintoc.com`, `wizard.fintoc.com` y `js.fintoc.com`). Los demás
+  enlaces `https`, como el comprobante de pago, se abren en el navegador, y todo lo demás se bloquea.
+- Cuando la página no se puede cargar, el SDK muestra su propio mensaje. La página de error del WebView imprimiría la
+  dirección, y la dirección contiene el session token.
 - Lo que el Widget informa a la app no es prueba de pago. Confirma los pagos con los webhooks de Fintoc en tu backend.
 
 ## Documentación
