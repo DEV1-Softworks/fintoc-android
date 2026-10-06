@@ -1,6 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">Fintoc</string>
+    <string name="app_name" translatable="false">Fintoc</string>
+    <string name="language_english" translatable="false">English</string>
+    <string name="language_spanish" translatable="false">Español</string>
+    <string name="language_french" translatable="false">Français</string>
+    <string name="language_portuguese" translatable="false">Português</string>
+    <string name="hosted_success_label" translatable="false">success_url</string>
+    <string name="hosted_cancel_label" translatable="false">cancel_url</string>
+    <string name="hosted_redirect_label" translatable="false">redirect_url</string>
     <string name="sample_title">Fintoc SDK sample</string>
-    <string name="sample_status_initialized">The SDK is initialized and ready to use.</string>
-    <string name="sample_status_not_initialized">The SDK is not initialized.</string>
+    <string name="sample_back">Back</string>
+    <string name="home_intro">Try each way of using the SDK. Use a sandbox key (pk_test_…): nothing here moves real money.</string>
+    <string name="home_placeholder_key_warning">This build uses a placeholder public key, so the Widget cannot start real flows. Add fintoc.publicKey=pk_test_… to local.properties and rebuild.</string>
+    <string name="home_demos_heading">Demos</string>
+    <string name="demo_movements_title">Connect a bank account</string>
+    <string name="demo_movements_description">Movements in a Compose FintocWidget. It only needs your public key.</string>
+    <string name="demo_payments_options_title">Pay with the Widget</string>
+    <string name="demo_payments_options_description">Payments in a Compose FintocWidget, with a session token that you paste.</string>
+    <string name="demo_payments_provider_title">Pay with a token provider</string>
+    <string name="demo_payments_provider_description">The SDK asks a simulated backend for the session token, and shows loading and retry.</string>
+    <string name="demo_payments_activity_title">Pay in a screen of its own</string>
+    <string name="demo_payments_activity_description">For apps without Compose: the Activity host, opened with FintocWidgetContract.</string>
+    <string name="demo_hosted_title">Hosted checkout</string>
+    <string name="demo_hosted_description">Opens a Fintoc-hosted page in a Custom Tab and reads what comes back.</string>
+    <string name="language_heading">Language of the SDK\'s own texts</string>
+    <string name="language_note">Only the SDK\'s loading, error and button texts change. The Widget page keeps its own language.</string>
+    <string name="language_automatic">Automatic</string>
+    <string name="token_heading">Session token</string>
+    <string name="token_explanation">Your backend creates a Checkout Session with its secret key and gives you its session_token. Paste it here: the app never holds your secret key.</string>
+    <string name="token_field_label">Session token</string>
+    <string name="token_start">Start</string>
+    <string name="token_invalid">That does not look like a session token. It must not be blank, contain spaces or be a secret key.</string>
+    <string name="token_fail_first">Make the simulated backend fail on the first attempt</string>
+    <string name="token_result_succeeded">Last result: succeeded</string>
+    <string name="token_result_exited">Last result: exited</string>
+    <string name="log_heading">Events</string>
+    <string name="log_empty">No events yet.</string>
+    <string name="hosted_explanation">Create a Checkout Session on your backend with these addresses as success_url and cancel_url, then paste its redirect_url below.</string>
+    <string name="hosted_copy">Copy</string>
+    <string name="hosted_copy_description">Copy %1$s</string>
+    <string name="hosted_new_secret">New secret value</string>
+    <string name="hosted_open">Open checkout</string>
+    <string name="hosted_error_untrusted">That is not an https address on a fintoc.com subdomain.</string>
+    <string name="hosted_error_no_browser">No app on this device can open it.</string>
+    <string name="hosted_outcome_none">Nothing has come back yet.</string>
+    <string name="hosted_outcome_succeeded">The success address came back.</string>
+    <string name="hosted_outcome_cancelled">The cancel address came back.</string>
+    <string name="hosted_outcome_unrelated">An address came back, but it is not one of yours or it lacks your secret value.</string>
+    <string name="hosted_reminder">Only a hint. Confirm payments with Fintoc webhooks on your backend.</string>
 </resources>

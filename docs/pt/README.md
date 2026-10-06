@@ -11,8 +11,8 @@ construído com Compose como primeira opção e usa Koin para injeção de depen
 > **Status: em desenvolvimento.** O build, o contêiner de injeção de dependências, o pipeline de testes, o app de
 > exemplo, a configuração do Widget (validação da chave pública, opções por produto e construtor de URL) e o
 > interpretador de eventos do Widget, o `FintocWidget` do Compose, o host com Activity para apps sem Compose, a troca
-> manual de idioma, as verificações de acessibilidade e o checkout hospedado já estão prontos. O app de exemplo completo
-> e a publicação no Maven chegam uma funcionalidade por vez por meio de pull requests.
+> manual de idioma, as verificações de acessibilidade, o checkout hospedado e o app de exemplo completo já estão
+> prontos. A publicação no Maven chega em um pull request à parte.
 
 ## Módulos
 
@@ -50,6 +50,8 @@ cd fintoc-android
 ./gradlew :app:assembleDebug          # compila o app de exemplo
 ./gradlew testDebugUnitTest           # testes unitários (JUnit, Robolectric, Mockito)
 ```
+
+Para experimentar o SDK contra o sandbox da Fintoc com o app de exemplo, siga o [guia do app de exemplo](sample-app.md).
 
 Usando o SDK a partir de um app:
 
@@ -164,6 +166,7 @@ O endereço que volta é apenas uma pista: confirme os pagamentos com os webhook
 |---|---|---|---|---|
 | Visão geral | [en](../../README.md) | [es](../es/README.md) | [fr](../fr/README.md) | este arquivo |
 | Arquitetura | [en](../en/architecture.md) | [es](../es/architecture.md) | [fr](../fr/architecture.md) | [pt](architecture.md) |
+| App de exemplo | [en](../en/sample-app.md) | [es](../es/sample-app.md) | [fr](../fr/sample-app.md) | [pt](sample-app.md) |
 | Como contribuir | [en](../en/contributing.md) | [es](../es/contributing.md) | [fr](../fr/contributing.md) | [pt](contributing.md) |
 
 ## Créditos e licença

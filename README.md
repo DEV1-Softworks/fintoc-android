@@ -10,9 +10,8 @@ for dependency injection.
 
 > **Status: in development.** The build, the dependency-injection container, the test pipeline, the sample app and the
 > Widget configuration (public key check, options per product and URL builder), the Widget event parser, the Compose
-> `FintocWidget`, the Activity host for apps without Compose, the language override, the accessibility checks and the
-> hosted checkout are in place. The full sample app and the Maven release arrive feature by feature through pull
-> requests.
+> `FintocWidget`, the Activity host for apps without Compose, the language override, the accessibility checks, the
+> hosted checkout and the full sample app are in place. The Maven release arrives in a pull request of its own.
 
 ## Modules
 
@@ -50,6 +49,8 @@ cd fintoc-android
 ./gradlew :app:assembleDebug          # build the sample app
 ./gradlew testDebugUnitTest           # unit tests (JUnit, Robolectric, Mockito)
 ```
+
+To try the SDK against Fintoc's sandbox with the sample app, follow the [sample app guide](docs/en/sample-app.md).
 
 Using the SDK from an app:
 
@@ -163,6 +164,7 @@ The returned address is only a hint: confirm payments with Fintoc webhooks on yo
 |---|---|---|---|---|
 | Overview | this file | [es](docs/es/README.md) | [fr](docs/fr/README.md) | [pt](docs/pt/README.md) |
 | Architecture | [en](docs/en/architecture.md) | [es](docs/es/architecture.md) | [fr](docs/fr/architecture.md) | [pt](docs/pt/architecture.md) |
+| Sample app | [en](docs/en/sample-app.md) | [es](docs/es/sample-app.md) | [fr](docs/fr/sample-app.md) | [pt](docs/pt/sample-app.md) |
 | Contributing | [en](docs/en/contributing.md) | [es](docs/es/contributing.md) | [fr](docs/fr/contributing.md) | [pt](docs/pt/contributing.md) |
 
 ## Credits and license
