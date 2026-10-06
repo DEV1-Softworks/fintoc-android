@@ -105,6 +105,13 @@ afterEvaluate {
                     name.set("Fintoc Android SDK")
                     description.set("Kotlin and Jetpack Compose SDK for the Fintoc API.")
                     url.set("https://github.com/DEV1-Softworks/fintoc-android")
+                    licenses {
+                        license {
+                            name.set("The Apache License, Version 2.0")
+                            url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
+                            distribution.set("repo")
+                        }
+                    }
                     scm {
                         url.set("https://github.com/DEV1-Softworks/fintoc-android")
                         connection.set("scm:git:git://github.com/DEV1-Softworks/fintoc-android.git")
