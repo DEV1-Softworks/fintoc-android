@@ -45,8 +45,8 @@ flowchart TB
 | `presentation` | `domain` | `data` |
 | `di` | todas las capas | — |
 
-Hoy existen la capa `domain` (paquetes `domain.widget` y `domain.security`), el paquete `di` y el punto de entrada
-público. Las demás capas se crean conforme lleguen las funciones, bajo el paquete base `mx.dev1.fintoc.sdk`.
+Hoy existen la capa `domain` (paquetes `domain.widget` y `domain.security`), la capa `presentation` (paquete
+`presentation.widget`), el paquete `di` y el punto de entrada público. Las demás capas se crean conforme lleguen las funciones, bajo el paquete base `mx.dev1.fintoc.sdk`.
 
 ## API pública y modo de API explícita
 
@@ -63,6 +63,7 @@ propósito, así que la superficie pública de la librería siempre es intencion
 | `FintocWidgetEvent` | Lo que reporta el Widget: `Succeeded`, `Exited` u `Occurred`. |
 | `FintocWidgetEventType` | Los eventos que documenta Fintoc, como `OPENED` o `PAYMENT_ERROR`. |
 | `FintocLinkIntentResult` | El `exchangeToken` de una cuenta bancaria conectada con `Movements`. Su `toString()` oculta el token. |
+| `FintocWidget` | El composable que muestra el Widget. Una sobrecarga recibe `FintocWidgetOptions`; la otra, un proveedor `suspend` del session token para pagos. |
 
 ## Configuración del Widget
 
@@ -135,6 +136,62 @@ Reglas de seguridad del intérprete:
 > WebView. Envía el `exchangeToken` a **tu backend**, el único lugar que puede canjearlo, y confirma los pagos con los
 > webhooks de Fintoc antes de entregar un pedido.
 
+## Vista del Widget
+
+`FintocWidget` es el composable que pone el Widget en pantalla. Arma la URL del Widget con la llave pública que diste a
+`Fintoc.initialize`, la muestra en un WebView endurecido e informa los eventos mediante `onEvent`.
+
+```mermaid
+flowchart TB
+    screen["Your screen"] --> widget["FintocWidget"]
+    backend["Your backend"] -.->|"sessionTokenProvider"| widget
+    widget --> url["FintocWidgetUrlBuilder"]
+    url --> view["Hardened WebView"]
+    view -->|"every navigation"| policy["FintocWidgetNavigationPolicy"]
+    policy -->|"fintocwidget://"| parser["FintocWidgetRedirectParser"]
+    parser --> event["onEvent"]
+    policy -->|"host de Fintoc"| view
+    policy -->|"otro https"| browser["Navegador del sistema"]
+    policy -->|"todo lo demás"| blocked["Bloqueado"]
+```
+
+Cada dirección a la que navega la página pasa por `FintocWidgetNavigationPolicy`, así que una página que se porte mal
+no puede convertir el WebView en un navegador de propósito general dentro de tu app:
+
+| Dirección | Marco principal | Marcos dentro de la página |
+|---|---|---|
+| `fintocwidget://…` | Se informa a la app, nunca se abre | Igual |
+| `https` en `webview.fintoc.com`, `wizard.fintoc.com` o `js.fintoc.com` | Se queda en el WebView | Se carga |
+| Cualquier otra dirección `https`, como el comprobante de pago | Se abre en el navegador | Se carga |
+| `http`, `intent:`, `javascript:`, `file:`, `data:`… | Bloqueada | Se carga |
+
+La revisión es estricta: una dirección que esconde su host tras una barra invertida, un escape con porcentaje o una `@`
+no cuenta como host de Fintoc.
+
+Lo que ve el usuario:
+
+- Un indicador de progreso cubre la página mientras carga.
+- Si la página no se puede cargar, se quita el WebView y lo reemplaza un mensaje con un botón «Reintentar». Esto
+  cubre los errores de red, los errores HTTP de la propia página, los problemas de certificado con un host de Fintoc y,
+  desde Android 8.0, el fallo del proceso de renderizado del WebView, que de otro modo cerraría tu app. Al tocar el botón se crea un
+  WebView nuevo.
+- Los mensajes vienen en español, inglés, francés y portugués, según el idioma del dispositivo.
+
+La sobrecarga con `sessionTokenProvider` es para pagos. Los session tokens de Fintoc pertenecen a un solo intento de
+pago, así que el SDK llama al proveedor una vez cuando el composable entra a la composición y de nuevo cada vez que el
+usuario toca «Reintentar» tras un fallo. Si el proveedor lanza una excepción, o devuelve un token vacío o una llave
+secreta, el usuario ve el mismo mensaje. Los logs nunca incluyen el token ni el mensaje del error que lanzó tu proveedor.
+
+Conviene saber:
+
+- El SDK declara el permiso `INTERNET` en su propio manifiesto. Sin él, el WebView falla en cada carga con el críptico
+  `net::ERR_CACHE_MISS`.
+- El Widget se carga de nuevo desde el principio cuando se recrea la pantalla, porque un session token no es algo que
+  el SDK pueda conservar con seguridad. Para mantener un pago en curso durante una rotación, haz que tu activity maneje
+  el cambio con `android:configChanges="orientation|screenSize|keyboardHidden"`.
+- La depuración del WebView es un ajuste de toda tu app. El SDK nunca la activa.
+- Las descargas que ofrece el Widget, como el comprobante de pago, se entregan al navegador.
+
 ## Inyección de dependencias con un contenedor Koin aislado
 
 Koin es el framework de inyección de dependencias. El SDK crea **su propio** contenedor en lugar de usar el global de
@@ -170,6 +227,7 @@ falla de inmediato con un mensaje que explica qué hacer.
 | `targetSdk` (app de ejemplo) | 36 | El nivel que Google Play exige actualmente. |
 | Jetpack Compose | BOM 2026.09.00 | UI con Compose como primera opción. El XML solo se usa donde la plataforma lo requiere (manifest, tema de la ventana). |
 | Bytecode de Java | 11 | Permite que la librería la consuma el mayor número posible de apps. |
+| Espresso | 3.7.0, también fijado en `fintoc-sdk` | Las pruebas de UI de Compose usan un gancho de Espresso que falla en versiones recientes de Android cuando entra una versión antigua de forma indirecta. |
 | Versiones | `gradle/libs.versions.toml` | Un único lugar para todas las versiones de dependencias. |
 
 ## Pruebas y cobertura

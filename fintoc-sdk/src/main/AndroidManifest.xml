@@ -1,2 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" />
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- The Widget is a web page, so the WebView needs the network. Declared here so host apps cannot forget it. -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
+</manifest>
