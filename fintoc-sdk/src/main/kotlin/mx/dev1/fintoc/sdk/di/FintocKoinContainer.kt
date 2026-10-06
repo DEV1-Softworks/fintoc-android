@@ -17,7 +17,11 @@ internal class FintocKoinContainer(
     configuration: FintocConfiguration,
 ) {
     private val koinApplication: KoinApplication = koinApplication {
-        modules(coreModule(applicationContext.applicationContext, configuration), widgetModule())
+        modules(
+            coreModule(applicationContext.applicationContext, configuration),
+            widgetModule(),
+            checkoutModule(),
+        )
     }
 
     val koin: Koin

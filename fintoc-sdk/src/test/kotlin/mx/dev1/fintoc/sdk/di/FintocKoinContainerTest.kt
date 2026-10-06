@@ -5,6 +5,8 @@ import android.content.Context
 import androidx.test.core.app.ApplicationProvider
 import mx.dev1.fintoc.sdk.FintocConfiguration
 import mx.dev1.fintoc.sdk.domain.widget.FintocWidgetOptions
+import mx.dev1.fintoc.sdk.presentation.checkout.AndroidCustomTabLauncher
+import mx.dev1.fintoc.sdk.presentation.checkout.CustomTabLauncher
 import mx.dev1.fintoc.sdk.presentation.host.FintocWidgetRequests
 import mx.dev1.fintoc.sdk.presentation.widget.AndroidExternalLinkLauncher
 import mx.dev1.fintoc.sdk.presentation.widget.ExternalLinkLauncher
@@ -19,6 +21,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.koin.core.parameter.parametersOf
 import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.verify
 import org.robolectric.Robolectric
@@ -102,6 +105,23 @@ class FintocKoinContainerTest {
 
         assertTrue(launcher is AndroidExternalLinkLauncher)
         verify(screen).startActivity(any())
+    }
+
+    @Test
+    fun `the custom tab launcher is created for the context it is asked for`() {
+        val koin = container().koin
+        val screen: Context = mock()
+
+        val launcher = koin.get<CustomTabLauncher> { parametersOf(screen) }
+        launcher.launch("https://pay.fintoc.com/checkout/cs_1")
+
+        assertTrue(launcher is AndroidCustomTabLauncher)
+        verify(screen).startActivity(any(), anyOrNull())
+    }
+
+    @Test
+    fun `a custom tab launcher cannot be built without the context it needs`() {
+        assertThrows(Exception::class.java) { container().koin.get<CustomTabLauncher>() }
     }
 
     @Test
