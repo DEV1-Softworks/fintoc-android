@@ -17,8 +17,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
+import mx.dev1.fintoc.sdk.FintocLanguage
 import mx.dev1.fintoc.sdk.domain.widget.FintocWidgetEvent
 import mx.dev1.fintoc.sdk.domain.widget.FintocWidgetNavigationPolicy
+import mx.dev1.fintoc.sdk.presentation.localization.rememberFintocStrings
 
 /**
  * Shows [url] in a hardened WebView and reports what the page does.
@@ -27,15 +29,18 @@ import mx.dev1.fintoc.sdk.domain.widget.FintocWidgetNavigationPolicy
  * While the page is loading a progress indicator covers it, and when the page cannot be loaded the WebView is removed
  * and a failure message takes its place.
  *
- * Both [onEvent] and [externalLinkLauncher] may change between recompositions without reloading the page.
+ * The texts of the loading and failure views follow [language], or the language of the device when it is `null`. Both
+ * [onEvent] and [externalLinkLauncher] may change between recompositions without reloading the page.
  */
 @Composable
 internal fun FintocWidgetWebView(
     url: String,
     onEvent: (FintocWidgetEvent) -> Unit,
     modifier: Modifier = Modifier,
+    language: FintocLanguage? = null,
     externalLinkLauncher: ExternalLinkLauncher = AndroidExternalLinkLauncher(LocalContext.current),
 ) {
+    val strings = rememberFintocStrings(language)
     val latestOnEvent by rememberUpdatedState(onEvent)
     val latestExternalLinkLauncher by rememberUpdatedState(externalLinkLauncher)
     var attempt by remember(url) { mutableIntStateOf(0) }
@@ -63,8 +68,8 @@ internal fun FintocWidgetWebView(
             }
         }
         when (loadState) {
-            FintocWidgetLoadState.LOADING -> FintocWidgetLoading()
-            FintocWidgetLoadState.FAILED -> FintocWidgetFailure(onRetry = { attempt += 1 })
+            FintocWidgetLoadState.LOADING -> FintocWidgetLoading(strings)
+            FintocWidgetLoadState.FAILED -> FintocWidgetFailure(strings, onRetry = { attempt += 1 })
             FintocWidgetLoadState.LOADED -> Unit
         }
     }

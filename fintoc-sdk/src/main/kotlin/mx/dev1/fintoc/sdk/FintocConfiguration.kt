@@ -9,11 +9,17 @@ import mx.dev1.fintoc.sdk.domain.security.SecretKeyGuard
  * must stay on your backend and are rejected here.
  *
  * @property publicKey Public key of your Fintoc account: `pk_test_…` for the sandbox or `pk_live_…` for production.
+ * @property language Language of the SDK's own screens and messages. `null`, the default, follows the device (and the
+ * per-app language on Android 13 and newer). Set one to force it, for example when your app has its own language
+ * picker. To change it later, call [Fintoc.initialize] again before showing the Widget. If you publish an Android App
+ * Bundle, turn off language splits (`android { bundle { language { enableSplit = false } } }`), or Google Play may not
+ * deliver a language that the device does not use and the SDK would fall back to English.
  * @throws IllegalArgumentException If the key is blank, contains whitespace, looks like a secret key, or does not
  * start with `pk_test_` or `pk_live_`. The message never repeats the rejected value.
  */
 public data class FintocConfiguration(
     val publicKey: String,
+    val language: FintocLanguage? = null,
 ) {
     init {
         require(publicKey.isNotBlank()) { "publicKey must not be blank." }
@@ -31,7 +37,8 @@ public data class FintocConfiguration(
         get() = if (publicKey.startsWith(LIVE_KEY_PREFIX)) FintocEnvironment.LIVE else FintocEnvironment.TEST
 
     /** Shows the environment only, so keys never reach logs or crash reports even though public keys are not secret. */
-    override fun toString(): String = "FintocConfiguration(publicKey=<redacted>, environment=$environment)"
+    override fun toString(): String =
+        "FintocConfiguration(publicKey=<redacted>, environment=$environment, language=${language ?: "automatic"})"
 
     private companion object {
         const val TEST_KEY_PREFIX = "pk_test_"
