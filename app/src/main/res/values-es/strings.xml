@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sample_title">Ejemplo del SDK de Fintoc</string>
+    <string name="sample_back">Atrás</string>
+    <string name="home_intro">Prueba cada forma de usar el SDK. Usa una llave de sandbox (pk_test_…): nada de aquí mueve dinero real.</string>
+    <string name="home_placeholder_key_warning">Esta compilación usa una llave pública de relleno, así que el Widget no puede iniciar flujos reales. Agrega fintoc.publicKey=pk_test_… a local.properties y vuelve a compilar.</string>
+    <string name="home_demos_heading">Demos</string>
+    <string name="demo_movements_title">Conectar una cuenta bancaria</string>
+    <string name="demo_movements_description">Movements en un FintocWidget de Compose. Solo necesita tu llave pública.</string>
+    <string name="demo_payments_options_title">Pagar con el Widget</string>
+    <string name="demo_payments_options_description">Payments en un FintocWidget de Compose, con un session token que pegas.</string>
+    <string name="demo_payments_provider_title">Pagar con un proveedor de token</string>
+    <string name="demo_payments_provider_description">El SDK pide el session token a un backend simulado, y muestra la carga y el reintento.</string>
+    <string name="demo_payments_activity_title">Pagar en una pantalla propia</string>
+    <string name="demo_payments_activity_description">Para apps sin Compose: el host con Activity, abierto con FintocWidgetContract.</string>
+    <string name="demo_hosted_title">Checkout alojado</string>
+    <string name="demo_hosted_description">Abre una página alojada por Fintoc en una Custom Tab y lee lo que vuelve.</string>
+    <string name="language_heading">Idioma de los textos propios del SDK</string>
+    <string name="language_note">Solo cambian los textos de carga, error y botones del SDK. La página del Widget conserva su propio idioma.</string>
+    <string name="language_automatic">Automático</string>
+    <string name="token_heading">Session token</string>
+    <string name="token_explanation">Tu backend crea una Checkout Session con su llave secreta y te da su session_token. Pégalo aquí: la app nunca guarda tu llave secreta.</string>
+    <string name="token_field_label">Session token</string>
+    <string name="token_start">Iniciar</string>
+    <string name="token_invalid">Eso no parece un session token. No debe estar vacío, tener espacios ni ser una llave secreta.</string>
+    <string name="token_fail_first">Hacer que el backend simulado falle en el primer intento</string>
+    <string name="token_result_succeeded">Último resultado: éxito</string>
+    <string name="token_result_exited">Último resultado: salió</string>
+    <string name="log_heading">Eventos</string>
+    <string name="log_empty">Aún no hay eventos.</string>
+    <string name="hosted_explanation">Crea una Checkout Session en tu backend con estas direcciones como success_url y cancel_url, y pega abajo su redirect_url.</string>
+    <string name="hosted_copy">Copiar</string>
+    <string name="hosted_copy_description">Copiar %1$s</string>
+    <string name="hosted_new_secret">Nuevo valor secreto</string>
+    <string name="hosted_open">Abrir el checkout</string>
+    <string name="hosted_error_untrusted">Esa no es una dirección https de un subdominio de fintoc.com.</string>
+    <string name="hosted_error_no_browser">Ninguna app de este dispositivo puede abrirla.</string>
+    <string name="hosted_outcome_none">Aún no ha vuelto nada.</string>
+    <string name="hosted_outcome_succeeded">Volvió la dirección de éxito.</string>
+    <string name="hosted_outcome_cancelled">Volvió la dirección de cancelación.</string>
+    <string name="hosted_outcome_unrelated">Volvió una dirección, pero no es una de las tuyas o le falta tu valor secreto.</string>
+    <string name="hosted_reminder">Solo una pista. Confirma los pagos con los webhooks de Fintoc en tu backend.</string>
+</resources>

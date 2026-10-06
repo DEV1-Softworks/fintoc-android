@@ -1,3 +1,4 @@
+import java.util.Properties
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 
 plugins {
@@ -7,6 +8,22 @@ plugins {
 
 apply(from = rootProject.file("gradle/jacoco-coverage.gradle.kts"))
 apply(from = rootProject.file("gradle/robolectric.gradle.kts"))
+
+// The sample reads your Fintoc public key from local.properties, which Git ignores:
+//   fintoc.publicKey=pk_test_...
+// Public keys are safe to ship in an app. Secret keys are not, so the build refuses one.
+val localProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.exists()) file.inputStream().use { stream -> load(stream) }
+}
+val fintocPublicKey: String = localProperties.getProperty("fintoc.publicKey")?.trim().orEmpty()
+    .ifEmpty { "pk_test_replace_me" }
+require(!fintocPublicKey.startsWith("sk_")) {
+    "fintoc.publicKey in local.properties looks like a secret key (sk_). Use your public key (pk_test_...)."
+}
+require(fintocPublicKey.matches(Regex("pk_(test|live)_[A-Za-z0-9_]+"))) {
+    "fintoc.publicKey in local.properties must look like pk_test_... or pk_live_..."
+}
 
 android {
     namespace = "mx.dev1.fintoc"
@@ -24,6 +41,12 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        buildConfigField("String", "FINTOC_PUBLIC_KEY", "\"$fintocPublicKey\"")
+    }
+
+    buildFeatures {
+        buildConfig = true
     }
 
     buildTypes {
@@ -32,7 +55,9 @@ android {
             enableAndroidTestCoverage = true
         }
         release {
-            isMinifyEnabled = false
+            // The sample shrinks with R8, so every build checks that the SDK survives it.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -61,6 +86,7 @@ android {
 
 dependencies {
     implementation(project(":fintoc-sdk"))
+    implementation(libs.kotlinx.coroutines.core)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
@@ -77,9 +103,11 @@ dependencies {
     testImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.kotlinx.coroutines.test)
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4.accessibility)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)
