@@ -56,7 +56,7 @@ The SDK enables Kotlin's **explicit API mode**. Every declaration is `internal` 
 | Type | Role |
 |---|---|
 | `Fintoc` | Entry point: `initialize`, `shutdown`, `isInitialized`. |
-| `FintocConfiguration` | Settings: `publicKey` (only `pk_test_` or `pk_live_`; `sk_` secret keys are rejected) and `environment`, deduced from the prefix. Its `toString()` hides the key. |
+| `FintocConfiguration` | Settings: `publicKey` (only `pk_test_` or `pk_live_`; `sk_` secret keys are rejected), `environment`, deduced from the prefix, and `language`, to force the language of the SDK's own texts. Its `toString()` hides the key. |
 | `FintocEnvironment` | `TEST` or `LIVE`. |
 | `FintocWidgetOptions` | What the Widget should do: `Payments`, `Movements` or `Subscriptions`. Each validates its data and hides its tokens in `toString()`. |
 | `FintocCountry`, `FintocHolderType` | Accepted values for `country` and `holder_type`. |
@@ -64,6 +64,8 @@ The SDK enables Kotlin's **explicit API mode**. Every declaration is `internal` 
 | `FintocWidgetEventType` | The events Fintoc documents, such as `OPENED` or `PAYMENT_ERROR`. |
 | `FintocLinkIntentResult` | The `exchangeToken` of a bank account connected with `Movements`. Its `toString()` hides the token. |
 | `FintocWidget` | The composable that shows the Widget. One overload takes `FintocWidgetOptions`, the other a `suspend` session token provider for payments. |
+| `FintocLanguage` | Languages of the SDK's own texts: English, Spanish, French and Portuguese. |
+| `FintocWidgetContract`, `FintocWidgetResult` | Open the Widget in a screen of its own, for apps without Compose, and read how it ended: `Succeeded` or `Exited`. |
 
 ## Widget configuration
 
@@ -188,6 +190,81 @@ Good to know:
   `android:configChanges="orientation|screenSize|keyboardHidden"`.
 - WebView debugging is a setting of your whole app. The SDK never turns it on.
 - The downloads the Widget offers, such as the payment voucher, are handed to the browser.
+
+## Activity host
+
+Apps that do not use Compose open the Widget with `FintocWidgetContract`, an `ActivityResultContract`. It starts
+`FintocWidgetActivity`, which shows the same `FintocWidget` under a title bar.
+
+```mermaid
+sequenceDiagram
+    participant App as Your app
+    participant Contract as FintocWidgetContract
+    participant Requests as FintocWidgetRequests - memory
+    participant Screen as FintocWidgetActivity
+
+    App->>Contract: launch(options)
+    Contract->>Requests: register(options)
+    Requests-->>Contract: random request id
+    Contract->>Screen: Intent with the request id only
+    Screen->>Requests: find(requestId)
+    Note over Screen: Shows FintocWidget. Closes at once if nothing is found
+    Screen-->>App: RESULT_OK with the link intent, or RESULT_CANCELED
+```
+
+Design decisions:
+
+- The options hold session tokens, so they never travel inside the `Intent`. It only carries a random identifier and the
+  options stay in memory. If the system restores the screen after the process died, nothing is found and the screen
+  closes as cancelled.
+- The screen is not exported, so no other app can start it, and `FLAG_SECURE` hides it from screenshots, screen
+  recordings and the recent apps list, because the Widget asks for bank credentials.
+- It handles configuration changes itself (rotation, font size, language, dark mode), so a payment in progress is not
+  restarted.
+- After a success the screen stays open, because Fintoc's guide says the user may need to download a payment voucher. The
+  button turns from "Close" into "Done", and the result reaches your app when the user taps it or goes back. An exit
+  that the Widget reports after a success does not turn it into a cancellation.
+- Only the end of the flow comes back, as `Succeeded` or `Exited`. To follow every event of the Widget, use the
+  composable.
+- It is edge-to-edge and pads its content for the keyboard and the system bars, so no field of the Widget ends up under
+  them.
+
+## Languages
+
+The SDK's own texts (loading message, error message, buttons and title) exist in English, Spanish, French and
+Portuguese.
+
+| You set | The SDK uses |
+|---|---|
+| Nothing (`language = null`) | The language of the device and, on Android 13 and newer, the language chosen for your app in the system settings. Regional variants such as `es-MX` or `pt-BR` use their language. Any other language falls back to English. |
+| A `FintocLanguage` in `FintocConfiguration` | That language, whatever the device says. The rest of the configuration of the device, such as the font size, is kept. |
+
+Good to know:
+
+- The override only changes what the SDK draws. The Widget page is Fintoc's web page and keeps its own language.
+- To change the language later, call `Fintoc.initialize` again before showing the Widget. A Widget that is already on
+  screen keeps the language it had.
+- If you publish an Android App Bundle, turn off language splits with
+  `android { bundle { language { enableSplit = false } } }`. By default Google Play delivers only the languages of the
+  user's device, so a language that you force but the device does not use would fall back to English.
+- Resources use the `fintoc_` prefix. To add a text, add it in `values/` and also in `values-es`, `values-fr` and
+  `values-pt`: lint reports a missing translation as an error.
+
+## Accessibility
+
+The SDK's own screens keep working with the tools Android offers to people who need them:
+
+| Concern | What the SDK does |
+|---|---|
+| Screen readers (TalkBack) | The loading indicator has a description and is announced politely. The failure message is announced when it appears. The title of the Activity host is a heading. Buttons have visible text, not only icons. The Widget page is a web page, which TalkBack reads natively. |
+| Large fonts and display size | Texts use `sp`. The failure view scrolls, so at the largest sizes on a small screen the message and the button stay reachable. The language override keeps the font scale. The WebView is never prevented from zooming. |
+| Touch targets | Buttons are at least 48 dp. |
+| Keyboard and system bars | The Activity host is edge-to-edge and pads its content for both. |
+| Light and dark themes | The Activity host follows the theme of the device. |
+
+How it is checked: the instrumented tests run Google's Accessibility Test Framework on a real device over the loading
+view, the failure view and the Activity host, at the default settings and at 200% font size with 150% display size.
+Any error fails the build. The accessibility of the Widget page itself is Fintoc's.
 
 ## Dependency injection with an isolated Koin container
 

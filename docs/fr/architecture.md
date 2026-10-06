@@ -56,7 +56,7 @@ marquée `public` ; la surface publique de la bibliothèque est donc toujours in
 | Type | Rôle |
 |---|---|
 | `Fintoc` | Point d'entrée : `initialize`, `shutdown`, `isInitialized`. |
-| `FintocConfiguration` | Paramètres : `publicKey` (uniquement `pk_test_` ou `pk_live_` ; les clés secrètes `sk_` sont refusées) et `environment`, déduit du préfixe. Son `toString()` masque la clé. |
+| `FintocConfiguration` | Paramètres : `publicKey` (uniquement `pk_test_` ou `pk_live_` ; les clés secrètes `sk_` sont refusées), `environment`, déduit du préfixe, et `language`, pour forcer la langue des textes propres au SDK. Son `toString()` masque la clé. |
 | `FintocEnvironment` | `TEST` ou `LIVE`. |
 | `FintocWidgetOptions` | Ce que le Widget doit faire : `Payments`, `Movements` ou `Subscriptions`. Chacun valide ses données et masque ses jetons dans `toString()`. |
 | `FintocCountry`, `FintocHolderType` | Valeurs acceptées pour `country` et `holder_type`. |
@@ -64,6 +64,8 @@ marquée `public` ; la surface publique de la bibliothèque est donc toujours in
 | `FintocWidgetEventType` | Les événements documentés par Fintoc, comme `OPENED` ou `PAYMENT_ERROR`. |
 | `FintocLinkIntentResult` | L'`exchangeToken` d'un compte bancaire connecté avec `Movements`. Son `toString()` masque le jeton. |
 | `FintocWidget` | Le composable qui affiche le Widget. Une surcharge prend `FintocWidgetOptions` ; l'autre, un fournisseur `suspend` du session token pour les paiements. |
+| `FintocLanguage` | Langues des textes propres au SDK : français, anglais, espagnol et portugais. |
+| `FintocWidgetContract`, `FintocWidgetResult` | Ouvrent le Widget dans un écran dédié, pour les apps sans Compose, et lisent comment il s'est terminé : `Succeeded` ou `Exited`. |
 
 ## Configuration du Widget
 
@@ -193,6 +195,84 @@ n'incluent jamais le jeton ni le message de l'erreur levée par votre fournisseu
   gérer le changement avec `android:configChanges="orientation|screenSize|keyboardHidden"`.
 - Le débogage de la WebView est un réglage de toute votre application. Le SDK ne l'active jamais.
 - Les téléchargements proposés par le Widget, comme le justificatif de paiement, sont confiés au navigateur.
+
+## Hôte Activity
+
+Les apps qui n'utilisent pas Compose ouvrent le Widget avec `FintocWidgetContract`, un `ActivityResultContract`. Il
+démarre `FintocWidgetActivity`, qui affiche le même `FintocWidget` sous une barre de titre.
+
+```mermaid
+sequenceDiagram
+    participant App as Votre app
+    participant Contract as FintocWidgetContract
+    participant Requests as FintocWidgetRequests - mémoire
+    participant Screen as FintocWidgetActivity
+
+    App->>Contract: launch(options)
+    Contract->>Requests: register(options)
+    Requests-->>Contract: identifiant de requête aléatoire
+    Contract->>Screen: Intent avec uniquement l'identifiant
+    Screen->>Requests: find(requestId)
+    Note over Screen: Affiche FintocWidget. Se ferme aussitôt si rien n'est trouvé
+    Screen-->>App: RESULT_OK avec le link intent, ou RESULT_CANCELED
+```
+
+Choix de conception :
+
+- Les options contiennent des session tokens : elles ne circulent donc jamais dans l'`Intent`. Celui-ci ne porte qu'un
+  identifiant aléatoire et les options restent en mémoire. Si le système restaure l'écran après la mort du processus,
+  rien n'est trouvé et l'écran se ferme comme annulé.
+- L'écran n'est pas exporté, donc aucune autre app ne peut le démarrer, et `FLAG_SECURE` le masque des captures
+  d'écran, des enregistrements et de la liste des apps récentes, car le Widget demande des identifiants bancaires.
+- Il gère lui-même les changements de configuration (rotation, taille de police, langue, mode sombre) : un paiement en
+  cours n'est donc pas redémarré.
+- Après un succès, l'écran reste ouvert, car le guide de Fintoc indique que l'utilisateur peut avoir besoin de
+  télécharger un justificatif de paiement. Le bouton passe de « Fermer » à « Terminé », et le résultat parvient à votre
+  app quand l'utilisateur appuie dessus ou revient en arrière. Une sortie signalée par le Widget après un succès ne le
+  transforme pas en annulation.
+- Seule la fin du flux revient, sous la forme `Succeeded` ou `Exited`. Pour suivre tous les événements du Widget,
+  utilisez le composable.
+- Il s'affiche bord à bord et ajoute des marges pour le clavier et les barres système : aucun champ du Widget ne se
+  retrouve donc dessous.
+
+## Langues
+
+Les textes propres au SDK (message de chargement, message d'erreur, boutons et titre) existent en français, anglais,
+espagnol et portugais.
+
+| Vous définissez | Le SDK utilise |
+|---|---|
+| Rien (`language = null`) | La langue de l'appareil et, à partir d'Android 13, la langue choisie pour votre app dans les réglages du système. Les variantes régionales comme `es-MX` ou `pt-BR` utilisent leur langue. Toute autre langue se rabat sur l'anglais. |
+| Un `FintocLanguage` dans `FintocConfiguration` | Cette langue, quoi que dise l'appareil. Le reste de la configuration de l'appareil, comme la taille de police, est conservé. |
+
+À savoir :
+
+- Le changement manuel ne touche que ce que dessine le SDK. La page du Widget est la page web de Fintoc et garde sa
+  propre langue.
+- Pour changer la langue plus tard, appelez de nouveau `Fintoc.initialize` avant d'afficher le Widget. Un Widget déjà à
+  l'écran garde la langue qu'il avait.
+- Si vous publiez un Android App Bundle, désactivez la division par langue avec
+  `android { bundle { language { enableSplit = false } } }`. Par défaut, Google Play ne livre que les langues de
+  l'appareil de l'utilisateur : une langue que vous forcez mais que l'appareil n'utilise pas se rabattrait sur l'anglais.
+- Les ressources utilisent le préfixe `fintoc_`. Pour ajouter un texte, ajoutez-le dans `values/` et aussi dans
+  `values-es`, `values-fr` et `values-pt` : lint signale une traduction manquante comme une erreur.
+
+## Accessibilité
+
+Les écrans propres au SDK continuent de fonctionner avec les outils qu'Android offre aux personnes qui en ont besoin :
+
+| Aspect | Ce que fait le SDK |
+|---|---|
+| Lecteurs d'écran (TalkBack) | L'indicateur de chargement a une description et est annoncé poliment. Le message d'échec est annoncé quand il apparaît. Le titre de l'hôte Activity est un titre de section. Les boutons ont un texte visible, pas seulement des icônes. La page du Widget est une page web, que TalkBack lit nativement. |
+| Grandes polices et taille d'affichage | Les textes utilisent des `sp`. La vue d'échec défile : aux tailles les plus grandes sur un petit écran, le message et le bouton restent accessibles. Le changement manuel de langue conserve l'échelle de police. Le zoom de la WebView n'est jamais bloqué. |
+| Zones tactiles | Les boutons mesurent au moins 48 dp. |
+| Clavier et barres système | L'hôte Activity s'affiche bord à bord et ajoute des marges pour les deux. |
+| Thèmes clair et sombre | L'hôte Activity suit le thème de l'appareil. |
+
+Comment c'est vérifié : les tests instrumentés exécutent l'Accessibility Test Framework de Google sur un appareil réel,
+sur la vue de chargement, la vue d'échec et l'hôte Activity, avec les réglages par défaut et avec une police à 200 % et
+un affichage à 150 %. Toute erreur fait échouer le build. L'accessibilité de la page du Widget elle-même relève de
+Fintoc.
 
 ## Injection de dépendances avec un conteneur Koin isolé
 
