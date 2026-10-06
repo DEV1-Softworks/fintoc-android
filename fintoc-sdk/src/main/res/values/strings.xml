@@ -3,4 +3,7 @@
     <string name="fintoc_widget_loading">Loading Fintoc</string>
     <string name="fintoc_widget_error_message">We couldn\'t load Fintoc. Check your connection and try again.</string>
     <string name="fintoc_widget_error_retry">Try again</string>
+    <string name="fintoc_widget_activity_title" translatable="false">Fintoc</string>
+    <string name="fintoc_widget_close">Close</string>
+    <string name="fintoc_widget_done">Done</string>
 </resources>

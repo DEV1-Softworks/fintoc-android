@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Window of FintocWidgetActivity. The screen itself is drawn with Compose. -->
+    <style name="fintoc_WidgetActivityTheme" parent="@android:style/Theme.Material.Light.NoActionBar" />
+</resources>

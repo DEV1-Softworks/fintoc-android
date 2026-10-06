@@ -77,6 +77,10 @@ dependencies {
     implementation(libs.koin.core)
     implementation(libs.kotlinx.coroutines.core)
 
+    // Exposed in the public API: FintocWidgetContract is an ActivityResultContract.
+    api(libs.androidx.activity)
+    implementation(libs.androidx.activity.compose)
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.compose.ui)
     implementation(libs.androidx.compose.material3)
@@ -94,6 +98,7 @@ dependencies {
 
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
+    androidTestImplementation(libs.androidx.compose.ui.test.junit4.accessibility)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)
