@@ -57,6 +57,8 @@ need a device. If you skip the test tasks, the coverage check only sees stale or
 - Espresso 3.7.0 or newer is required to run on Android 16 (it is already declared in the version catalog).
 - The tests of the Activity host start the real screen of the SDK and rotate the device once. The screen loads Fintoc's
   public Widget page, but the tests pass whether or not it manages to load.
+- The hosted checkout test opens a Custom Tab of the browser of the device, on a made-up session of `pay.fintoc.com`, and
+  sends the Back key to return. Keep the screen unlocked, and expect the browser to appear for a moment.
 
 ## 4. Coding rules
 

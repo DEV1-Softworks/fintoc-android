@@ -58,6 +58,9 @@ desatualizados ou inexistentes.
 - O Espresso 3.7.0 ou superior é necessário para rodar no Android 16 (já está declarado no catálogo de versões).
 - Os testes do host com Activity iniciam a tela real do SDK e giram o dispositivo uma vez. A tela carrega a página
   pública do Widget da Fintoc, mas os testes passam quer ela consiga carregar ou não.
+- O teste do checkout hospedado abre uma Custom Tab do navegador do dispositivo, sobre uma sessão inventada do
+  `pay.fintoc.com`, e envia a tecla Voltar para retornar. Mantenha a tela desbloqueada e espere o navegador aparecer por
+  um instante.
 
 ## 4. Regras de código
 
