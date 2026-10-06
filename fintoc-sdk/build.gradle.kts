@@ -1,16 +1,15 @@
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
-    `maven-publish`
+    alias(libs.plugins.dokka)
+    alias(libs.plugins.maven.publish)
 }
 
 apply(from = rootProject.file("gradle/jacoco-coverage.gradle.kts"))
 apply(from = rootProject.file("gradle/robolectric.gradle.kts"))
-
-group = "mx.dev1.fintoc"
-version = "0.1.0-SNAPSHOT"
 
 android {
     namespace = "mx.dev1.fintoc.sdk"
@@ -59,17 +58,31 @@ android {
             }
         }
     }
-
-    publishing {
-        singleVariant("release") {
-            withSourcesJar()
-            withJavadocJar()
-        }
-    }
 }
 
 kotlin {
     explicitApi()
+
+    // Kotlin writes the language version into the metadata of every class, and a compiler can only read metadata up to
+    // one version newer than itself. Compiling at 2.2 lets apps on Kotlin 2.1 and later consume the library, whatever
+    // version this build uses. Older levels are deprecated by the compiler, and in practice an app needs Android
+    // Gradle Plugin 9 to compile against API 37, which ships Kotlin 2.2.
+    compilerOptions {
+        languageVersion.set(KotlinVersion.KOTLIN_2_2)
+        apiVersion.set(KotlinVersion.KOTLIN_2_2)
+    }
+
+    // The standard library is a dependency of the published library, and Gradle gives an app the newest version that
+    // any dependency asks for. Asking for the one of this build (2.4) would hand apps on an older Kotlin a library their
+    // compiler cannot read.
+    coreLibrariesVersion = "2.2.0"
+}
+
+// Coordinates, version and POM data are in gradle.properties. Credentials are never in the repository: see
+// docs/en/releasing.md.
+mavenPublishing {
+    publishToMavenCentral()
+    signAllPublications()
 }
 
 dependencies {
@@ -107,33 +120,4 @@ dependencies {
     androidTestImplementation(libs.mockito.android)
     androidTestImplementation(libs.mockito.kotlin)
     androidTestImplementation(libs.kotlinx.coroutines.test)
-}
-
-afterEvaluate {
-    publishing {
-        publications {
-            create<MavenPublication>("release") {
-                from(components["release"])
-                artifactId = "fintoc-sdk"
-
-                pom {
-                    name.set("Fintoc Android SDK")
-                    description.set("Kotlin and Jetpack Compose SDK for the Fintoc API.")
-                    url.set("https://github.com/DEV1-Softworks/fintoc-android")
-                    licenses {
-                        license {
-                            name.set("The Apache License, Version 2.0")
-                            url.set("https://www.apache.org/licenses/LICENSE-2.0.txt")
-                            distribution.set("repo")
-                        }
-                    }
-                    scm {
-                        url.set("https://github.com/DEV1-Softworks/fintoc-android")
-                        connection.set("scm:git:git://github.com/DEV1-Softworks/fintoc-android.git")
-                        developerConnection.set("scm:git:ssh://git@github.com/DEV1-Softworks/fintoc-android.git")
-                    }
-                }
-            }
-        }
-    }
 }
