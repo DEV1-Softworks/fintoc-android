@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fintoc_widget_loading">Chargement de Fintoc</string>
+    <string name="fintoc_widget_error_message">Impossible de charger Fintoc. Vérifiez votre connexion et réessayez.</string>
+    <string name="fintoc_widget_error_retry">Réessayer</string>
+</resources>
