@@ -56,6 +56,8 @@ desatualizados ou inexistentes.
 - **Mantenha a tela ligada e desbloqueada** enquanto os testes rodam. Se a tela apagar, os testes de Compose falham com
   `No compose hierarchies found in the app`.
 - O Espresso 3.7.0 ou superior é necessário para rodar no Android 16 (já está declarado no catálogo de versões).
+- Os testes do host com Activity iniciam a tela real do SDK e giram o dispositivo uma vez. A tela carrega a página
+  pública do Widget da Fintoc, mas os testes passam quer ela consiga carregar ou não.
 
 ## 4. Regras de código
 

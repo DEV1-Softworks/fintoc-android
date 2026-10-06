@@ -3,4 +3,6 @@
     <string name="fintoc_widget_loading">Cargando Fintoc</string>
     <string name="fintoc_widget_error_message">No pudimos cargar Fintoc. Revisa tu conexión e inténtalo de nuevo.</string>
     <string name="fintoc_widget_error_retry">Reintentar</string>
+    <string name="fintoc_widget_close">Cerrar</string>
+    <string name="fintoc_widget_done">Listo</string>
 </resources>

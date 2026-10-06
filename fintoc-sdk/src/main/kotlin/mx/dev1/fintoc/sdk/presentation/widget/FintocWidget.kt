@@ -15,6 +15,7 @@ import mx.dev1.fintoc.sdk.FintocConfiguration
 import mx.dev1.fintoc.sdk.domain.widget.FintocWidgetEvent
 import mx.dev1.fintoc.sdk.domain.widget.FintocWidgetOptions
 import mx.dev1.fintoc.sdk.domain.widget.FintocWidgetUrlBuilder
+import mx.dev1.fintoc.sdk.presentation.localization.rememberFintocStrings
 
 /**
  * Shows the Fintoc Widget, configured by [options], and reports what happens inside it through [onEvent].
@@ -56,10 +57,10 @@ public fun FintocWidget(
     onEvent: (FintocWidgetEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val publicKey = remember { Fintoc.requireKoin().get<FintocConfiguration>().publicKey }
-    val widgetUrl = remember(publicKey, options) { FintocWidgetUrlBuilder.build(publicKey, options) }
+    val configuration = remember { Fintoc.requireKoin().get<FintocConfiguration>() }
+    val widgetUrl = remember(configuration, options) { FintocWidgetUrlBuilder.build(configuration.publicKey, options) }
 
-    FintocWidgetWebView(url = widgetUrl, onEvent = onEvent, modifier = modifier)
+    FintocWidgetWebView(url = widgetUrl, onEvent = onEvent, modifier = modifier, language = configuration.language)
 }
 
 /**
@@ -94,6 +95,9 @@ public fun FintocWidget(
     onEvent: (FintocWidgetEvent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    // Read first, so a missing initialization fails before the provider calls your backend.
+    val configuration = remember { Fintoc.requireKoin().get<FintocConfiguration>() }
+    val strings = rememberFintocStrings(configuration.language)
     val latestSessionTokenProvider by rememberUpdatedState(sessionTokenProvider)
     var attempt by remember { mutableIntStateOf(0) }
     var tokenState by remember { mutableStateOf<FintocSessionTokenState>(FintocSessionTokenState.Loading) }
@@ -104,8 +108,10 @@ public fun FintocWidget(
     }
 
     when (val state = tokenState) {
-        FintocSessionTokenState.Loading -> Box(modifier = modifier) { FintocWidgetLoading() }
-        FintocSessionTokenState.Failed -> Box(modifier = modifier) { FintocWidgetFailure(onRetry = { attempt += 1 }) }
+        FintocSessionTokenState.Loading -> Box(modifier = modifier) { FintocWidgetLoading(strings) }
+        FintocSessionTokenState.Failed -> Box(modifier = modifier) {
+            FintocWidgetFailure(strings, onRetry = { attempt += 1 })
+        }
         is FintocSessionTokenState.Ready -> FintocWidget(options = state.options, onEvent = onEvent, modifier = modifier)
     }
 }

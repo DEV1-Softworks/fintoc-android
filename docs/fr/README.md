@@ -11,9 +11,9 @@ Fintoc, est conçu avec Compose en priorité et utilise Koin pour l'injection de
 
 > **État : en développement.** Le build, le conteneur d'injection de dépendances, la chaîne de tests, l'application
 > d'exemple, la configuration du Widget (validation de la clé publique, options par produit et constructeur d'URL) et
-> l'analyseur d'événements du Widget et le `FintocWidget` de Compose sont en place. L'hôte Activity pour les apps sans
-> Compose, le changement manuel de langue, le checkout hébergé et l'application d'exemple complète arrivent
-> fonctionnalité par fonctionnalité via des pull requests.
+> l'analyseur d'événements du Widget, le `FintocWidget` de Compose, l'hôte Activity pour les apps sans Compose, le
+> changement manuel de langue et les contrôles d'accessibilité sont en place. Le checkout hébergé, l'application
+> d'exemple complète et la publication sur Maven arrivent fonctionnalité par fonctionnalité via des pull requests.
 
 ## Modules
 
@@ -93,6 +93,31 @@ FintocWidget(
 Si vous avez déjà les options, par exemple `Movements`, qui n'a pas besoin de jeton, passez-les directement avec
 `FintocWidget(options = …, onEvent = …)`. Le SDK déclare lui-même la permission `INTERNET` : votre application n'a pas à le faire.
 
+Les apps sans Compose ouvrent le Widget dans un écran dédié, avec l'API Activity Result :
+
+```kotlin
+private val fintocWidget = registerForActivityResult(FintocWidgetContract()) { result ->
+    when (result) {
+        is FintocWidgetResult.Succeeded -> checkThePaymentOnYourBackend()
+        FintocWidgetResult.Exited -> Unit
+    }
+}
+
+fintocWidget.launch(FintocWidgetOptions.Payments(sessionToken = tokenFromYourBackend))
+```
+
+Sans cette API, appelez `FintocWidgetContract().createIntent(…)` et `parseResult(…)` depuis `startActivityForResult`.
+
+Les textes propres au SDK (message de chargement, erreurs, boutons) existent en français, anglais, espagnol et
+portugais, et suivent la langue de l'appareil. Pour en forcer une, par exemple parce que votre application a son propre
+sélecteur de langue :
+
+```kotlin
+FintocConfiguration(publicKey = "pk_test_…", language = FintocLanguage.SPANISH)
+```
+
+La page du Widget appartient à Fintoc et garde sa propre langue.
+
 ## Modèle de sécurité
 
 - L'application ne conserve que la **clé publique** (`pk_test_` ou `pk_live_`). Le SDK refuse les clés secrètes
@@ -107,6 +132,8 @@ Si vous avez déjà les options, par exemple `Movements`, qui n'a pas besoin de 
   liens `https`, comme le justificatif de paiement, s'ouvrent dans le navigateur, et tout le reste est bloqué.
 - Quand la page ne peut pas être chargée, le SDK affiche son propre message. La page d'erreur de la WebView afficherait
   l'adresse, et l'adresse contient le session token.
+- L'écran pour les apps sans Compose est privé à votre application et se masque des captures d'écran et de la liste des
+  apps récentes. Les session tokens ne circulent jamais dans un `Intent`.
 - Ce que le Widget signale à l'application ne prouve pas un paiement. Confirmez les paiements avec les webhooks de
   Fintoc sur votre backend.
 

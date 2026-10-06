@@ -55,6 +55,8 @@ need a device. If you skip the test tasks, the coverage check only sees stale or
 - **Keep the screen on and unlocked** while the tests run. If the screen turns off, Compose tests fail with
   `No compose hierarchies found in the app`.
 - Espresso 3.7.0 or newer is required to run on Android 16 (it is already declared in the version catalog).
+- The tests of the Activity host start the real screen of the SDK and rotate the device once. The screen loads Fintoc's
+  public Widget page, but the tests pass whether or not it manages to load.
 
 ## 4. Coding rules
 

@@ -4,4 +4,18 @@
     <!-- The Widget is a web page, so the WebView needs the network. Declared here so host apps cannot forget it. -->
     <uses-permission android:name="android.permission.INTERNET" />
 
+    <application>
+        <!--
+            Screen for apps that do not use Compose, opened through FintocWidgetContract. It is private to the app, and it
+            handles configuration changes itself so that a payment in progress survives a rotation.
+        -->
+        <activity
+            android:name="mx.dev1.fintoc.sdk.presentation.host.FintocWidgetActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|density|layoutDirection|locale|fontScale"
+            android:exported="false"
+            android:label="@string/fintoc_widget_activity_title"
+            android:theme="@style/fintoc_WidgetActivityTheme"
+            android:windowSoftInputMode="adjustResize" />
+    </application>
+
 </manifest>

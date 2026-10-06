@@ -54,6 +54,33 @@ class FintocConfigurationTest {
     }
 
     @Test
+    fun `language follows the device unless one is chosen`() {
+        assertEquals(null, FintocConfiguration(publicKey = "pk_test_abc123").language)
+        assertEquals(
+            FintocLanguage.FRENCH,
+            FintocConfiguration(publicKey = "pk_test_abc123", language = FintocLanguage.FRENCH).language,
+        )
+    }
+
+    @Test
+    fun `language tags match the supported languages`() {
+        assertEquals(
+            listOf("en", "es", "fr", "pt"),
+            FintocLanguage.entries.map { language -> language.languageTag },
+        )
+    }
+
+    @Test
+    fun `toString shows the language but never the public key`() {
+        assertTrue(FintocConfiguration(publicKey = "pk_test_abc123").toString().contains("language=automatic"))
+        assertTrue(
+            FintocConfiguration(publicKey = "pk_test_abc123", language = FintocLanguage.SPANISH)
+                .toString()
+                .contains("language=SPANISH"),
+        )
+    }
+
+    @Test
     fun `toString never exposes the public key`() {
         val description = FintocConfiguration(publicKey = "pk_live_visible-nowhere").toString()
 
