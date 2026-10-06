@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import com.google.android.apps.common.testing.accessibility.framework.AccessibilityCheckPreset
+import com.google.android.apps.common.testing.accessibility.framework.AccessibilityCheckResult
 import com.google.android.apps.common.testing.accessibility.framework.integrations.espresso.AccessibilityValidator
 import mx.dev1.fintoc.sdk.FintocLanguage
 import mx.dev1.fintoc.sdk.R
@@ -53,7 +54,7 @@ class FintocAccessibilityInstrumentedTest {
     private val validator = AccessibilityValidator()
         .setCheckPreset(AccessibilityCheckPreset.LATEST)
         .setRunChecksFromRootView(true)
-        .setThrowExceptionForErrors(true)
+        .setThrowExceptionFor(AccessibilityCheckResult.AccessibilityCheckResultType.ERROR)
 
     @Before
     fun checkEveryInteraction() {
