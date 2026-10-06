@@ -1,15 +1,19 @@
 import org.gradle.testing.jacoco.plugins.JacocoTaskExtension
 
 plugins {
-    alias(libs.plugins.android.application)
+    alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.compose)
+    `maven-publish`
 }
 
 apply(from = rootProject.file("gradle/jacoco-coverage.gradle.kts"))
 apply(from = rootProject.file("gradle/robolectric.gradle.kts"))
 
+group = "mx.dev1.fintoc"
+version = "0.1.0-SNAPSHOT"
+
 android {
-    namespace = "mx.dev1.fintoc"
+    namespace = "mx.dev1.fintoc.sdk"
     compileSdk {
         version = release(37) {
             minorApiLevel = 0
@@ -17,13 +21,10 @@ android {
     }
 
     defaultConfig {
-        applicationId = "mx.dev1.fintoc"
         minSdk = 28
-        targetSdk = 36
-        versionCode = 1
-        versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        consumerProguardFiles("consumer-rules.pro")
     }
 
     buildTypes {
@@ -57,30 +58,60 @@ android {
             }
         }
     }
+
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+            withJavadocJar()
+        }
+    }
+}
+
+kotlin {
+    explicitApi()
 }
 
 dependencies {
-    implementation(project(":fintoc-sdk"))
+    implementation(platform(libs.koin.bom))
+    implementation(libs.koin.core)
+    implementation(libs.kotlinx.coroutines.core)
 
     implementation(platform(libs.androidx.compose.bom))
-    implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.ui)
-    implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
-    debugImplementation(libs.androidx.compose.ui.tooling)
-    debugImplementation(libs.androidx.compose.ui.test.manifest)
 
     testImplementation(libs.junit)
     testImplementation(libs.robolectric)
     testImplementation(libs.androidx.test.core)
-    testImplementation(platform(libs.androidx.compose.bom))
-    testImplementation(libs.androidx.compose.ui.test.junit4)
     testImplementation(libs.mockito.core)
     testImplementation(libs.mockito.kotlin)
+    testImplementation(libs.kotlinx.coroutines.test)
 
-    androidTestImplementation(platform(libs.androidx.compose.bom))
-    androidTestImplementation(libs.androidx.compose.ui.test.junit4)
-    androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.test.ext.junit)
     androidTestImplementation(libs.androidx.test.runner)
+    androidTestImplementation(libs.mockito.android)
+    androidTestImplementation(libs.mockito.kotlin)
+    androidTestImplementation(libs.kotlinx.coroutines.test)
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                from(components["release"])
+                artifactId = "fintoc-sdk"
+
+                pom {
+                    name.set("Fintoc Android SDK")
+                    description.set("Kotlin and Jetpack Compose SDK for the Fintoc API.")
+                    url.set("https://github.com/DEV1-Softworks/fintoc-android")
+                    scm {
+                        url.set("https://github.com/DEV1-Softworks/fintoc-android")
+                        connection.set("scm:git:git://github.com/DEV1-Softworks/fintoc-android.git")
+                        developerConnection.set("scm:git:ssh://git@github.com/DEV1-Softworks/fintoc-android.git")
+                    }
+                }
+            }
+        }
+    }
 }
