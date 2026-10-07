@@ -34,16 +34,8 @@ signingInMemoryKey=<armored secret key, on one line or with \n for the line brea
 signingInMemoryKeyPassword=<password of the key>
 ```
 
-Sur un serveur de CI, utilisez les mêmes noms comme variables d'environnement avec le préfixe `ORG_```kotlin
-dependencies {
-    implementation("mx.dev1.fintoc:fintoc-sdk:<version>")
-}
-```_PROJECT_`, par
-exemple `ORG_```kotlin
-dependencies {
-    implementation("mx.dev1.fintoc:fintoc-sdk:<version>")
-}
-```_PROJECT_mavenCentralUsername`.
+Sur un serveur de CI, utilisez les mêmes noms comme variables d'environnement avec le préfixe `ORG_GRADLE_PROJECT_`, par
+exemple `ORG_GRADLE_PROJECT_mavenCentralUsername`.
 
 ## Versionnement
 
@@ -65,16 +57,66 @@ Elles suivent le Git flow de ce projet, où `master` est la production.
    `./gradlew testDebugUnitTest connectedDebugAndroidTest jacocoDebugCoverageReport jacocoDebugCoverageVerification lintDebug lintRelease assembleRelease`.
 4. Faites un [essai à blanc](#essai-à-blanc) et corrigez ce qu'il montre.
 5. Ouvrez une pull request de `release/<version>` vers `master`, et fusionnez-la.
-6. Sur `master`, étiquetez le commit `v<version>` et poussez l'étiquette.
-7. Publiez. Cela envoie, signe et libère :
+6. Sur `master`, étiquetez le commit `v<version>` et poussez l'étiquette : `git tag v<version> && git push origin v<version>`.
+   Cela lance le [workflow de publication](#publication-automatique), qui teste, signe, envoie et crée la release GitHub.
+7. Quand le workflow se termine, ouvrez le [Central Portal](https://central.sonatype.com), allez dans Publish puis
+   Deployments, attendez que la validation passe et appuyez sur **Publish**. Rien n'est public avant cela.
+8. Fusionnez `master` dans `develop` avec une pull request qui met `VERSION_NAME` au prochain `-SNAPSHOT`.
+9. Le workflow a déjà créé la release GitHub, avec des notes générées. Collez-y les notes du journal des modifications si vous les préférez.
+
+## Publication automatique
+
+`.github/workflows/cd.yml` publie une version quand une étiquette qui commence par `v` est poussée. Il peut aussi être lancé
+à la main depuis l'onglet Actions, pour publier de nouveau la version de `gradle.properties` après un échec.
+
+```mermaid
+flowchart LR
+    A[Push tag v1.0.0] --> B[Unit tests and coverage gate]
+    B --> C[Version check]
+    C --> D[Sign and upload to the Central Portal]
+    D --> E[A maintainer presses Publish in the portal]
+    D --> F[GitHub release with generated notes]
+```
+
+1. **D'abord les tests.** La publication est bloquée sauf si les tests unitaires passent et si la couverture est d'au moins
+   80 %.
+2. **Vérification de la version.** L'exécution échoue si `VERSION_NAME` se termine par `-SNAPSHOT`, ou si l'étiquette n'est
+   pas `v` plus `VERSION_NAME` : une mauvaise étiquette ne peut donc pas partir.
+3. **Envoi signé.** `./gradlew :fintoc-sdk:publishToMavenCentral` signe les fichiers et les envoie au Central Portal comme
+   un deployment. La compilation repart de zéro, sans cache Gradle.
+4. **Confirmation manuelle.** Rien ne devient public tout seul : une personne mainteneuse appuie sur **Publish** sur le
+   deployment validé dans le portail. Le résumé de l'exécution vous le rappelle.
+5. **Release GitHub.** Le workflow crée la release de l'étiquette avec des notes générées. Une version avec un suffixe,
+   comme `1.1.0-rc.1`, est marquée comme pré-release.
+
+Les identifiants sont des secrets du dépôt (Settings, Secrets and variables, Actions), nommés comme ceux d'
+[openpay-android](https://github.com/DEV1-Softworks/openpay-android) :
+
+| Secret | Ce qu'il contient | Propriété Gradle qu'il devient |
+|---|---|---|
+| `MAVEN_REPOSITORY_USERNAME` | Le nom d'utilisateur du jeton utilisateur du Central Portal. | `mavenCentralUsername` |
+| `MAVEN_REPOSITORY_PASSWORD` | Le mot de passe du jeton utilisateur du Central Portal. | `mavenCentralPassword` |
+| `SIGNING_KEY` | La clé privée au format armored : `gpg --export-secret-keys --armor <id de la clé>`. | `signingInMemoryKey` |
+| `SIGNING_PASSWORD` | Le mot de passe de cette clé. | `signingInMemoryKeyPassword` |
+
+Si une exécution échoue :
+
+- **Avant l'envoi** (les tests ou la vérification de la version) : rien n'a été publié. Corrigez la cause et, si le commit
+  change, supprimez l'étiquette (`git push --delete origin v<version>` et `git tag -d v<version>`), puis étiquetez de nouveau.
+- **Pendant ou après l'envoi :** regardez le deployment dans le portail. Un deployment refusé peut y être abandonné et la
+  même version renvoyée. Une version publiée ne peut plus jamais être renvoyée : corrigez le problème avec une nouvelle
+  version.
+
+## Publication à la main
+
+Si le workflow n'est pas disponible, publiez depuis votre machine avec les identifiants de votre `gradle.properties` :
 
 ```bash
 ./gradlew :fintoc-sdk:publishAndReleaseToMavenCentral
 ```
 
-   Pour voir l'envoi dans le portail avant sa sortie, exécutez plutôt `publishToMavenCentral` et cliquez sur Publish là-bas.
-8. Fusionnez `master` dans `develop` avec une pull request qui met `VERSION_NAME` au prochain `-SNAPSHOT`.
-9. Créez une release GitHub depuis l'étiquette, avec les notes du journal des modifications.
+Cela signe, envoie et publie sans la confirmation manuelle. Pour regarder d'abord l'envoi dans le portail, lancez plutôt
+`publishToMavenCentral` et appuyez sur Publish là-bas.
 
 ## Ce qui est publié
 

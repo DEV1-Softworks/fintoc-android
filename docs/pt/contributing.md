@@ -27,7 +27,7 @@ fintoc-android/
 │       ├── test/kotlin/        # testes unitários (rodam no seu computador)
 │       └── androidTest/kotlin/ # testes instrumentados (rodam em um dispositivo)
 ├── app/                        # aplicativo de exemplo (mesma estrutura de src)
-├── .github/workflows/          # integração contínua, executada em cada pull request
+├── .github/workflows/          # integração contínua (cada pull request) e publicação (tags)
 ├── gradle/
 │   ├── libs.versions.toml      # todas as versões de dependências ficam aqui
 │   ├── jacoco-coverage.gradle.kts

@@ -1,0 +1,126 @@
+name: CD
+
+# Releasing: set VERSION_NAME in gradle.properties to the version (no -SNAPSHOT), merge it into master, and push the tag
+# v<version> on that commit. The workflow tests, checks that the tag and VERSION_NAME agree, uploads the signed library
+# to the Central Portal and creates the GitHub release. Nothing becomes public until a maintainer presses Publish in
+# the portal.
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  test:
+    name: Tests and coverage gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+
+      - name: Run unit tests and enforce the coverage minimum
+        run: ./gradlew testDebugUnitTest jacocoDebugCoverageReport jacocoDebugCoverageVerification
+
+  publish:
+    name: Publish to Maven Central
+    runs-on: ubuntu-latest
+    needs: test
+    timeout-minutes: 30
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      # Maven Central never accepts a version twice, and a SNAPSHOT is not a release, so a mistake here is cheaper to
+      # catch than to undo.
+      - name: Verify the version that is about to be published
+        run: |
+          gradle_version="$(grep '^VERSION_NAME=' gradle.properties | cut -d= -f2)"
+          if [ -z "$gradle_version" ]; then
+            echo "::error::VERSION_NAME was not found in gradle.properties"
+            exit 1
+          fi
+          if [[ "$gradle_version" == *-SNAPSHOT ]]; then
+            echo "::error::VERSION_NAME=$gradle_version is a SNAPSHOT. Set the release version in gradle.properties first."
+            exit 1
+          fi
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            tag_version="${GITHUB_REF_NAME#v}"
+            if [ "$tag_version" != "$gradle_version" ]; then
+              echo "::error::Tag $GITHUB_REF_NAME does not match VERSION_NAME=$gradle_version in gradle.properties"
+              exit 1
+            fi
+          fi
+          echo "Publishing version $gradle_version"
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: 21
+
+      # A release is built from scratch, without a cache that an earlier build could have written.
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-disabled: true
+
+      # The secrets are the ones that openpay-android uses. The Central Portal token is a user token of the portal, not
+      # the login. The signing key is the armored private key (`gpg --export-secret-keys --armor <key id>`).
+      - name: Sign the library and upload it to the Central Portal
+        env:
+          ORG_GRADLE_PROJECT_mavenCentralUsername: ${{ secrets.MAVEN_REPOSITORY_USERNAME }}
+          ORG_GRADLE_PROJECT_mavenCentralPassword: ${{ secrets.MAVEN_REPOSITORY_PASSWORD }}
+          ORG_GRADLE_PROJECT_signingInMemoryKey: ${{ secrets.SIGNING_KEY }}
+          ORG_GRADLE_PROJECT_signingInMemoryKeyPassword: ${{ secrets.SIGNING_PASSWORD }}
+        run: ./gradlew :fintoc-sdk:publishToMavenCentral
+
+      - name: Remind about the manual portal release step
+        run: |
+          {
+            echo "## Deployment uploaded"
+            echo ""
+            echo "The signed library was uploaded to the Central Portal."
+            echo "Go to https://central.sonatype.com → Publish → Deployments,"
+            echo "wait for the validation to pass and press **Publish** to release"
+            echo "it to Maven Central. Nothing is public until that button is pressed."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  github-release:
+    name: Create the GitHub release
+    runs-on: ubuntu-latest
+    needs: publish
+    if: github.ref_type == 'tag'
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v7
+
+      # A version with a suffix, such as 1.1.0-rc.1, is announced as a pre-release.
+      - name: Create the release with generated notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          prerelease_flag=""
+          if [[ "$GITHUB_REF_NAME" == *-* ]]; then
+            prerelease_flag="--prerelease"
+          fi
+          gh release create "$GITHUB_REF_NAME" --verify-tag --generate-notes $prerelease_flag
