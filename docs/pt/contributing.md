@@ -27,6 +27,7 @@ fintoc-android/
 │       ├── test/kotlin/        # testes unitários (rodam no seu computador)
 │       └── androidTest/kotlin/ # testes instrumentados (rodam em um dispositivo)
 ├── app/                        # aplicativo de exemplo (mesma estrutura de src)
+├── .github/workflows/          # integração contínua, executada em cada pull request
 ├── gradle/
 │   ├── libs.versions.toml      # todas as versões de dependências ficam aqui
 │   ├── jacoco-coverage.gradle.kts
@@ -111,6 +112,20 @@ Passos para uma mudança:
 6. Aguarde a revisão e o merge. Só então inicie a próxima funcionalidade a partir do `develop`.
 
 **Sem pull requests empilhados.** Cada branch parte do `develop`, nunca de outra branch de funcionalidade.
+
+### Verificações em cada pull request
+
+O GitHub Actions executa `.github/workflows/ci.yml` em cada pull request para `develop` ou `master`, e em cada push nessas
+branches. Três jobs rodam em paralelo, e um pull request está pronto para ser mesclado somente quando os três estão
+verdes:
+
+| Job | O que verifica | O mesmo na sua máquina |
+|---|---|---|
+| Unit tests and coverage | Executa os testes unitários e falha abaixo de 80 % de cobertura. Conta apenas os testes unitários, o que é mais rigoroso que a cobertura combinada da seção 3, então passar aqui significa passar lá. Os pull requests deste repositório recebem também um comentário com a cobertura. | `./gradlew testDebugUnitTest jacocoDebugCoverageReport jacocoDebugCoverageVerification` |
+| Lint and release build | Executa o lint, compila as variantes release e publica em uma pasta local, o que não exige credenciais. Os arquivos da biblioteca ficam anexados à execução. | `./gradlew lintDebug lintRelease assembleRelease :fintoc-sdk:publishToMavenLocal -Dmaven.repo.local=/tmp/fintoc-m2` |
+| Instrumented tests | Executa os testes instrumentados em um emulador do runner (Android 14, API 34). Sua máquina não precisa de um: você executa esses testes em um dispositivo físico. | `./gradlew connectedDebugAndroidTest` |
+
+Os relatórios de cada execução ficam anexados como artefatos, o que ajuda quando um job falha e a causa não está no log.
 
 ## 6. Documentação
 

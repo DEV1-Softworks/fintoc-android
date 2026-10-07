@@ -27,6 +27,7 @@ fintoc-android/
 │       ├── test/kotlin/        # tests unitaires (exécutés sur votre ordinateur)
 │       └── androidTest/kotlin/ # tests instrumentés (exécutés sur un appareil)
 ├── app/                        # application d'exemple (même structure src)
+├── .github/workflows/          # intégration continue, exécutée à chaque pull request
 ├── gradle/
 │   ├── libs.versions.toml      # toutes les versions de dépendances sont ici
 │   ├── jacoco-coverage.gradle.kts
@@ -111,6 +112,20 @@ Les branches de fonctionnalité partent de `develop` et y reviennent via une pul
 6. Attendez la relecture et la fusion. Ce n'est qu'ensuite que vous démarrez la fonctionnalité suivante depuis `develop`.
 
 **Pas de pull requests empilées.** Chaque branche part de `develop`, jamais d'une autre branche de fonctionnalité.
+
+### Vérifications sur chaque pull request
+
+GitHub Actions exécute `.github/workflows/ci.yml` pour chaque pull request vers `develop` ou `master`, et pour chaque push
+sur ces branches. Trois jobs s'exécutent en parallèle, et une pull request est prête à être fusionnée seulement quand les
+trois sont verts :
+
+| Job | Ce qu'il vérifie | La même chose sur votre machine |
+|---|---|---|
+| Unit tests and coverage | Exécute les tests unitaires et échoue sous 80 % de couverture. Il ne compte que les tests unitaires, ce qui est plus strict que la couverture combinée de la section 3 : réussir ici signifie réussir là-bas. Les pull requests de ce dépôt reçoivent aussi un commentaire avec la couverture. | `./gradlew testDebugUnitTest jacocoDebugCoverageReport jacocoDebugCoverageVerification` |
+| Lint and release build | Exécute lint, compile les variantes release et publie dans un dossier local, ce qui ne demande aucun identifiant. Les fichiers de la bibliothèque sont joints à l'exécution. | `./gradlew lintDebug lintRelease assembleRelease :fintoc-sdk:publishToMavenLocal -Dmaven.repo.local=/tmp/fintoc-m2` |
+| Instrumented tests | Exécute les tests instrumentés sur un émulateur du runner (Android 14, API 34). Votre machine n'en a pas besoin : vous exécutez ces tests sur un appareil physique. | `./gradlew connectedDebugAndroidTest` |
+
+Les rapports de chaque exécution sont joints comme artefacts, ce qui aide quand un job échoue et que la cause n'est pas dans le journal.
 
 ## 6. Documentation
 

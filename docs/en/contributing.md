@@ -27,6 +27,7 @@ fintoc-android/
 │       ├── test/kotlin/        # unit tests (run on your computer)
 │       └── androidTest/kotlin/ # instrumented tests (run on a device)
 ├── app/                        # sample application (same src layout)
+├── .github/workflows/          # continuous integration, run on every pull request
 ├── gradle/
 │   ├── libs.versions.toml      # every dependency version lives here
 │   ├── jacoco-coverage.gradle.kts
@@ -109,6 +110,19 @@ Steps for a change:
 6. Wait for the review and the merge. Only then start the next feature from `develop`.
 
 **No stacked pull requests.** Each branch starts from `develop`, never from another feature branch.
+
+### Checks on every pull request
+
+GitHub Actions runs `.github/workflows/ci.yml` for every pull request into `develop` or `master`, and for every push to
+them. Three jobs run in parallel, and a pull request is ready to merge only when all three are green:
+
+| Job | What it checks | The same on your machine |
+|---|---|---|
+| Unit tests and coverage | Runs the unit tests and fails below 80% coverage. It counts the unit tests alone, which is stricter than the merged coverage of section 3, so passing here means passing there. Pull requests from this repository also get a comment with the coverage. | `./gradlew testDebugUnitTest jacocoDebugCoverageReport jacocoDebugCoverageVerification` |
+| Lint and release build | Runs lint, builds the release variants and publishes to a local folder, which needs no credentials. The library files are attached to the run. | `./gradlew lintDebug lintRelease assembleRelease :fintoc-sdk:publishToMavenLocal -Dmaven.repo.local=/tmp/fintoc-m2` |
+| Instrumented tests | Runs the instrumented tests on an emulator of the runner (Android 14, API 34). Your machine does not need one: you run these tests on a physical device. | `./gradlew connectedDebugAndroidTest` |
+
+The reports of each run are attached to it as artifacts, which helps when a job fails and the cause is not in the log.
 
 ## 6. Documentation
 

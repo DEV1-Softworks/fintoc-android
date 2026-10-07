@@ -27,6 +27,7 @@ fintoc-android/
 │       ├── test/kotlin/        # pruebas unitarias (corren en tu computadora)
 │       └── androidTest/kotlin/ # pruebas instrumentadas (corren en un dispositivo)
 ├── app/                        # aplicación de ejemplo (misma estructura de src)
+├── .github/workflows/          # integración continua, se ejecuta en cada pull request
 ├── gradle/
 │   ├── libs.versions.toml      # aquí viven todas las versiones de dependencias
 │   ├── jacoco-coverage.gradle.kts
@@ -111,6 +112,19 @@ Pasos para un cambio:
 6. Espera la revisión y el merge. Solo entonces inicia la siguiente funcionalidad desde `develop`.
 
 **Sin pull requests apilados.** Cada rama parte de `develop`, nunca de otra rama de funcionalidad.
+
+### Verificaciones en cada pull request
+
+GitHub Actions ejecuta `.github/workflows/ci.yml` en cada pull request hacia `develop` o `master`, y en cada push a esas
+ramas. Tres trabajos corren en paralelo, y un pull request está listo para fusionarse solo cuando los tres están en verde:
+
+| Trabajo | Qué verifica | Lo mismo en tu máquina |
+|---|---|---|
+| Unit tests and coverage | Ejecuta las pruebas unitarias y falla por debajo del 80 % de cobertura. Cuenta solo las pruebas unitarias, lo cual es más estricto que la cobertura combinada de la sección 3, así que pasar aquí implica pasar allá. Los pull requests de este repositorio reciben además un comentario con la cobertura. | `./gradlew testDebugUnitTest jacocoDebugCoverageReport jacocoDebugCoverageVerification` |
+| Lint and release build | Ejecuta lint, compila las variantes release y publica en una carpeta local, lo que no requiere credenciales. Los archivos de la biblioteca quedan adjuntos a la ejecución. | `./gradlew lintDebug lintRelease assembleRelease :fintoc-sdk:publishToMavenLocal -Dmaven.repo.local=/tmp/fintoc-m2` |
+| Instrumented tests | Ejecuta las pruebas instrumentadas en un emulador del runner (Android 14, API 34). Tu máquina no necesita uno: tú ejecutas estas pruebas en un dispositivo físico. | `./gradlew connectedDebugAndroidTest` |
+
+Los reportes de cada ejecución quedan adjuntos como artefactos, lo que ayuda cuando un trabajo falla y la causa no está en el registro.
 
 ## 6. Documentación
 
