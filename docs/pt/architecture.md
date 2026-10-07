@@ -176,6 +176,10 @@ O que o usuário vê:
 - Se a página não puder ser carregada, a WebView é removida e uma mensagem com um botão «Tentar novamente» a substitui.
   Isso cobre erros de rede, erros HTTP da própria página, problemas de certificado com um host da Fintoc e, a partir do
   Android 8.0, a queda do processo de renderização da WebView, que de outra forma fecharia seu app. Tocar no botão cria uma nova WebView.
+- Se o dispositivo não consegue criar uma WebView, o que acontece quando o Android System WebView não está instalado,
+  está desativado ou está sendo atualizado, o Android lança uma exceção no construtor e um app que o chama sem proteção
+  fecha. O SDK a captura, mostra uma mensagem que diz o que falta e mantém o botão «Tentar novamente», porque a pessoa
+  pode resolver e voltar. O mesmo vale para uma WebView que falha enquanto é configurada: ela é liberada primeiro.
 - As mensagens vêm em português, inglês, espanhol e francês, conforme o idioma do dispositivo.
 
 A sobrecarga com `sessionTokenProvider` é para pagamentos. Os session tokens da Fintoc pertencem a uma única tentativa
@@ -367,6 +371,7 @@ O que vive no contêiner, e por quê:
 | `coreModule` | `FintocConfiguration` | `single` | As configurações dadas a `Fintoc.initialize`. |
 | `widgetModule` | `FintocWidgetRequests` | `single`, com `onClose` | Guarda os session tokens das telas do host com Activity. É esvaziado quando o contêiner fecha, então `Fintoc.shutdown()`, ou inicializar de novo, esquece todos os tokens. |
 | `widgetModule` | `ExternalLinkLauncher` | `factory` | Precisa do contexto em que o Widget é mostrado, então é criado com `parametersOf(context)`. |
+| `widgetModule` | `FintocWebViewFactory` | `factory` | Cria a WebView. O Android decide se um dispositivo pode ter uma, então os testes substituem esta definição para fazer a criação falhar. |
 
 A regra: **o contêiner é dono do que tem estado ou depende do Android.** Funções puras, sem nada a liberar, como
 `FintocWidgetUrlBuilder`, `FintocWidgetNavigationPolicy` e `FintocWidgetRedirectParser`, continuam sendo objetos simples

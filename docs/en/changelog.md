@@ -20,6 +20,9 @@ The first release will be `0.1.0`. It contains:
 - **`FintocWidget` for Compose**, with an overload that takes the options and one that asks a `suspend` provider for the
   session token. The WebView is hardened, only Fintoc hosts stay inside it, other `https` links open in the browser, and a
   failed load shows the SDK's own message with a retry instead of the address of the page.
+- **No crash on a device without a WebView.** When Android System WebView is missing, disabled or updating, the Widget
+  shows a message that says so, in the four languages, with a button to try again, instead of letting Android's exception
+  close your app.
 - **An Activity host for apps without Compose.** `FintocWidgetContract` and `FintocWidgetResult`. The session token never
   travels in the `Intent`, the screen hides itself from screenshots, and it survives a rotation.
 - **`FintocHostedCheckout`**, which opens a Fintoc-hosted checkout in a Custom Tab and tells whether the address that came

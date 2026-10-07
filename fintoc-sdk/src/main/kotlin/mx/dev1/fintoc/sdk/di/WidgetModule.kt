@@ -4,6 +4,8 @@ import android.content.Context
 import mx.dev1.fintoc.sdk.presentation.host.FintocWidgetRequests
 import mx.dev1.fintoc.sdk.presentation.widget.AndroidExternalLinkLauncher
 import mx.dev1.fintoc.sdk.presentation.widget.ExternalLinkLauncher
+import mx.dev1.fintoc.sdk.presentation.widget.FintocWebViewFactory
+import mx.dev1.fintoc.sdk.presentation.widget.PlatformWebViewFactory
 import org.koin.dsl.module
 import org.koin.dsl.onClose
 
@@ -17,4 +19,7 @@ internal fun widgetModule() = module {
 
     // Needs the context the Widget is shown in: pass it with `parametersOf(context)`.
     factory<ExternalLinkLauncher> { parameters -> AndroidExternalLinkLauncher(parameters.get<Context>()) }
+
+    // Android decides whether a WebView can be created at all, so tests replace this one to make creation fail.
+    factory<FintocWebViewFactory> { PlatformWebViewFactory }
 }

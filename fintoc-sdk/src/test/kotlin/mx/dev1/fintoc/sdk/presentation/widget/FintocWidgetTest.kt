@@ -2,6 +2,7 @@ package mx.dev1.fintoc.sdk.presentation.widget
 
 import android.content.Context
 import android.net.Uri
+import android.util.AndroidRuntimeException
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebResourceRequest
@@ -33,6 +34,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.dsl.module
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import org.robolectric.RobolectricTestRunner
@@ -94,6 +96,21 @@ class FintocWidgetTest {
         composeRule.runOnIdle {
             assertTrue(loadedUrl().orEmpty().contains("product=movements&holder_type=individual"))
         }
+    }
+
+    @Test
+    fun `a device without a webview shows a message and never crashes the host`() {
+        val deviceWithoutWebView = module {
+            factory<FintocWebViewFactory> { FintocWebViewFactory { throw AndroidRuntimeException("No WebView.") } }
+        }
+        Fintoc.requireKoin().loadModules(listOf(deviceWithoutWebView), allowOverride = true)
+
+        composeRule.setContent {
+            FintocWidget(options = FintocWidgetOptions.Payments(sessionToken = "cs_123_sec_456"), onEvent = {})
+        }
+
+        composeRule.onNodeWithText(string(R.string.fintoc_widget_error_webview_unavailable)).assertIsDisplayed()
+        composeRule.runOnIdle { assertNull(loadedUrl()) }
     }
 
     @Test

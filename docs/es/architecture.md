@@ -178,6 +178,10 @@ Lo que ve el usuario:
   cubre los errores de red, los errores HTTP de la propia página, los problemas de certificado con un host de Fintoc y,
   desde Android 8.0, el fallo del proceso de renderizado del WebView, que de otro modo cerraría tu app. Al tocar el botón se crea un
   WebView nuevo.
+- Si el dispositivo no puede crear un WebView, lo que ocurre cuando Android System WebView no está instalado, está
+  desactivado o se está actualizando, Android lanza una excepción desde el constructor y una app que lo llama sin
+  protección se cierra. El SDK la captura, muestra un mensaje que dice qué falta y conserva el botón «Reintentar», porque
+  la persona puede resolverlo y volver. Lo mismo vale para un WebView que falla mientras se configura: primero se libera.
 - Los mensajes vienen en español, inglés, francés y portugués, según el idioma del dispositivo.
 
 La sobrecarga con `sessionTokenProvider` es para pagos. Los session tokens de Fintoc pertenecen a un solo intento de
@@ -371,6 +375,7 @@ Qué vive en el contenedor, y por qué:
 | `coreModule` | `FintocConfiguration` | `single` | Los ajustes dados a `Fintoc.initialize`. |
 | `widgetModule` | `FintocWidgetRequests` | `single`, con `onClose` | Guarda los session tokens de las pantallas del host con Activity. Se vacía al cerrar el contenedor, así que `Fintoc.shutdown()`, o inicializar de nuevo, olvida todos los tokens. |
 | `widgetModule` | `ExternalLinkLauncher` | `factory` | Necesita el contexto en el que se muestra el Widget, así que se crea con `parametersOf(context)`. |
+| `widgetModule` | `FintocWebViewFactory` | `factory` | Crea el WebView. Android decide si un dispositivo puede tener uno, así que las pruebas reemplazan esta definición para que la creación falle. |
 
 La regla: **el contenedor es dueño de lo que tiene estado o depende de Android.** Las funciones puras que no tienen nada
 que liberar, como `FintocWidgetUrlBuilder`, `FintocWidgetNavigationPolicy` y `FintocWidgetRedirectParser`, siguen siendo

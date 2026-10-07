@@ -1,5 +1,6 @@
 package mx.dev1.fintoc.sdk.presentation.widget
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -45,9 +46,16 @@ internal fun FintocWidgetLoading(strings: FintocStrings, modifier: Modifier = Mo
  *
  * It scrolls, so that at the largest font and display sizes the message and the button stay reachable on a small
  * screen instead of being cut off.
+ *
+ * @param messageId What went wrong. The default is a page that could not be loaded.
  */
 @Composable
-internal fun FintocWidgetFailure(strings: FintocStrings, onRetry: () -> Unit, modifier: Modifier = Modifier) {
+internal fun FintocWidgetFailure(
+    strings: FintocStrings,
+    onRetry: () -> Unit,
+    modifier: Modifier = Modifier,
+    @StringRes messageId: Int = R.string.fintoc_widget_error_message,
+) {
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val screenHeight = maxHeight
         Column(
@@ -60,7 +68,7 @@ internal fun FintocWidgetFailure(strings: FintocStrings, onRetry: () -> Unit, mo
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
-                text = strings.get(R.string.fintoc_widget_error_message),
+                text = strings.get(messageId),
                 style = MaterialTheme.typography.bodyLarge,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.semantics { liveRegion = LiveRegionMode.Assertive },

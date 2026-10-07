@@ -22,6 +22,9 @@ La première version sera la `0.1.0`. Elle contient :
   fournisseur `suspend`. La WebView est durcie, seuls les hôtes de Fintoc y restent, les autres liens `https` s'ouvrent
   dans le navigateur, et un chargement échoué affiche le message propre au SDK avec une nouvelle tentative, au lieu de
   l'adresse de la page.
+- **Pas de plantage sur un appareil sans WebView.** Quand Android System WebView est absent, désactivé ou en cours de
+  mise à jour, le Widget affiche un message qui le dit, dans les quatre langues, avec un bouton pour réessayer, au lieu de
+  laisser l'exception d'Android fermer votre application.
 - **Un hôte Activity pour les apps sans Compose.** `FintocWidgetContract` et `FintocWidgetResult`. Le session token ne
   circule jamais dans l'`Intent`, l'écran se masque des captures d'écran, et il survit à une rotation.
 - **`FintocHostedCheckout`**, qui ouvre un checkout hébergé par Fintoc dans une Custom Tab et indique si l'adresse revenue

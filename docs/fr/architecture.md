@@ -179,6 +179,11 @@ Ce que voit l'utilisateur :
   Fintoc et, à partir d'Android 8.0, le plantage du processus de rendu de la WebView, qui fermerait sinon votre
   application. Appuyer sur le
   bouton crée une nouvelle WebView.
+- Si l'appareil ne peut pas créer de WebView, ce qui arrive quand Android System WebView n'est pas installé, est
+  désactivé ou est en cours de mise à jour, Android lève une exception depuis le constructeur et une application qui
+  l'appelle sans protection plante. Le SDK l'attrape, affiche un message qui dit ce qui manque et conserve le bouton
+  « Réessayer », car la personne peut régler le problème et revenir. Il en va de même pour une WebView qui échoue pendant
+  sa configuration : elle est d'abord libérée.
 - Les messages existent en français, anglais, espagnol et portugais, selon la langue de l'appareil.
 
 La surcharge avec `sessionTokenProvider` est destinée aux paiements. Les session tokens de Fintoc appartiennent à une
@@ -374,6 +379,7 @@ Ce qui vit dans le conteneur, et pourquoi :
 | `coreModule` | `FintocConfiguration` | `single` | Les paramètres donnés à `Fintoc.initialize`. |
 | `widgetModule` | `FintocWidgetRequests` | `single`, avec `onClose` | Conserve les session tokens des écrans de l'hôte Activity. Il est vidé à la fermeture du conteneur : `Fintoc.shutdown()`, ou une nouvelle initialisation, oublie donc tous les jetons. |
 | `widgetModule` | `ExternalLinkLauncher` | `factory` | A besoin du contexte dans lequel le Widget est affiché : il est donc créé avec `parametersOf(context)`. |
+| `widgetModule` | `FintocWebViewFactory` | `factory` | Crée la WebView. Android décide si un appareil peut en avoir une : les tests remplacent donc cette définition pour faire échouer la création. |
 
 La règle : **le conteneur possède ce qui a un état ou dépend d'Android.** Les fonctions pures, sans rien à libérer,
 comme `FintocWidgetUrlBuilder`, `FintocWidgetNavigationPolicy` et `FintocWidgetRedirectParser`, restent de simples objets
