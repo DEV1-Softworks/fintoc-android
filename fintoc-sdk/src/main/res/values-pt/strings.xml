@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fintoc_widget_loading">Carregando o Fintoc</string>
+    <string name="fintoc_widget_error_message">Não foi possível carregar o Fintoc. Verifique sua conexão e tente novamente.</string>
+    <string name="fintoc_widget_error_webview_unavailable">A Fintoc precisa do Android System WebView, que não está disponível neste dispositivo. Instale-o ou ative-o em Configurações ou no Google Play e tente novamente.</string>
+    <string name="fintoc_widget_error_retry">Tentar novamente</string>
+    <string name="fintoc_widget_close">Fechar</string>
+    <string name="fintoc_widget_done">Concluir</string>
+</resources>

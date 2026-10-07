@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <application
+        android:name=".sample.FintocSampleApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -10,6 +10,40 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Fintoc" />
+        android:theme="@style/Theme.Fintoc">
+
+        <!--
+            singleTask: a hosted checkout that comes back through the return link below reaches this same Activity
+            through onNewIntent and closes the Custom Tab. The configuration changes are handled here so that a Widget
+            on screen survives a rotation instead of loading again.
+        -->
+        <activity
+            android:name=".sample.MainActivity"
+            android:configChanges="orientation|screenSize|smallestScreenSize|screenLayout|keyboard|keyboardHidden|navigation|uiMode|density|layoutDirection|locale|fontScale"
+            android:exported="true"
+            android:launchMode="singleTask"
+            android:windowSoftInputMode="adjustResize">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+
+            <!--
+                Return link of the hosted checkout demo. The sample uses a custom scheme because a verified App Link
+                needs a domain of your own; a real app should prefer an App Link, which no other app can claim.
+            -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+
+                <data
+                    android:host="checkout"
+                    android:scheme="fintocsample" />
+            </intent-filter>
+        </activity>
+    </application>
 
 </manifest>

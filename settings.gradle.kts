@@ -23,5 +23,6 @@ dependencyResolutionManagement {
 }
 
 rootProject.name = "Fintoc"
+include(":fintoc-sdk")
 include(":app")
  

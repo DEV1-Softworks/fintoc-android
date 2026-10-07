@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="fintoc_widget_loading">Loading Fintoc</string>
+    <string name="fintoc_widget_error_message">We couldn\'t load Fintoc. Check your connection and try again.</string>
+    <string name="fintoc_widget_error_webview_unavailable">Fintoc needs Android System WebView, which is not available on this device. Install or enable it in Settings or Google Play, then try again.</string>
+    <string name="fintoc_widget_error_retry">Try again</string>
+    <string name="fintoc_widget_activity_title" translatable="false">Fintoc</string>
+    <string name="fintoc_widget_close">Close</string>
+    <string name="fintoc_widget_done">Done</string>
+</resources>

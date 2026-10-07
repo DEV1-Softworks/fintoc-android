@@ -1,0 +1,206 @@
+# SDK de Fintoc para Android
+
+[English](../../README.md) · **Español** · [Français](../fr/README.md) · [Português](../pt/README.md)
+
+SDK comunitario y **no oficial**, en Kotlin y Jetpack Compose, para agregar pagos de [Fintoc](https://fintoc.com)
+(como SPEI en México) y conexiones bancarias a una app de Android. Envuelve el Widget de Fintoc, está construido con
+Compose como primera opción y usa Koin para la inyección de dependencias.
+
+> **Sin afiliación con Fintoc.** Es un proyecto de la comunidad. «Fintoc» es una marca de sus respectivos propietarios.
+
+> **Estado: lista para la versión 1.0.0.** Todo lo previsto para la primera versión está listo: el Widget para Compose
+> y un host con Activity para apps sin Compose, el checkout alojado, cuatro idiomas con cambio manual, pruebas de
+> accesibilidad, una app de ejemplo y la publicación en Maven Central. La primera versión es la `1.0.0` y aún no está
+> publicada: consulta [Instalación](#instalación).
+
+## Módulos
+
+| Módulo | Propósito |
+|---|---|
+| [`fintoc-sdk`](../../fintoc-sdk) | La librería publicada en Maven: `mx.dev1.fintoc:fintoc-sdk`. |
+| [`app`](../../app) | Aplicación de ejemplo que consume el SDK. No se publica. |
+
+```mermaid
+flowchart LR
+    host["Tu app"] --> sdk["fintoc-sdk"]
+    sample["app (ejemplo)"] --> sdk
+    sdk --> koin["Koin (contenedor aislado)"]
+    sdk --> compose["Jetpack Compose"]
+```
+
+## Requisitos
+
+| Herramienta | Versión |
+|---|---|
+| JDK para lanzar Gradle | 11 o superior (el build aprovisiona automáticamente un toolchain con JDK 21) |
+| Android SDK Platform | 37 (`compileSdk`) |
+| Android Studio | Una versión estable reciente compatible con Android Gradle Plugin 9.4 |
+| Dispositivo o emulador | Android 6.0 (API 23) o superior, solo para las pruebas instrumentadas |
+
+Compatible con Android 6.0 (API 23) y superior. Las librerías de Jetpack Compose y AndroidX en las que se apoya el SDK
+necesitan `compileSdk 37`, y el SDK lo declara en sus propios metadatos: una app que compile contra una API más antigua se
+detiene con un mensaje claro. [Instalación](#instalación) lista lo que necesita tu app.
+
+## Instalación
+
+> **Aún no está publicada.** La primera versión no ha llegado a Maven Central. Mientras tanto, compila la librería desde el
+> código fuente: ejecuta `./gradlew :fintoc-sdk:publishToMavenLocal`, agrega `mavenLocal()` a los repositorios de tu app y
+> usa el `VERSION_NAME` de `gradle.properties`.
+
+```kotlin
+dependencies {
+    implementation("mx.dev1.fintoc:fintoc-sdk:<version>")
+}
+```
+
+Lo que necesita tu app:
+
+| | Requisito | Por qué |
+|---|---|---|
+| `compileSdk` | 37 o superior | Lo exigen las librerías de Compose y AndroidX en las que se apoya el SDK. Gradle se detiene con un mensaje claro si el tuyo es menor, y fijar un Compose BOM anterior no ayuda. |
+| Android Gradle Plugin | Uno que admita `compileSdk 37` | Este proyecto usa 9.4.1. |
+| `minSdk` | 23 | Android 6.0. |
+| Kotlin | 2.2 o superior | Comprobado con compiladores 2.2.0 y 2.4.20. La librería se compila con el nivel de lenguaje 2.2 y solo pide una biblioteca estándar 2.2, así que no obliga a tu app a usar un Kotlin más nuevo. |
+| Jetpack Compose | Solo para el composable `FintocWidget` | Una app sin Compose usa `FintocWidgetContract`, sin plugin de Compose ni código propio de Compose. Las librerías de Compose igual se suman a tu app, porque el SDK depende de ellas. |
+| Permisos y Activities | Nada que declarar | El SDK agrega a tu manifiesto el permiso `INTERNET` y su propia Activity privada. |
+
+Si publicas un Android App Bundle y quieres forzar el idioma de los textos propios del SDK, desactiva la división por
+idioma: consulta [Idiomas](architecture.md#idiomas).
+
+## Inicio rápido
+
+```bash
+git clone git@github.com:DEV1-Softworks/fintoc-android.git
+cd fintoc-android
+
+./gradlew :app:assembleDebug          # compila la app de ejemplo
+./gradlew testDebugUnitTest           # pruebas unitarias (JUnit, Robolectric, Mockito)
+```
+
+Para probar el SDK contra el sandbox de Fintoc con la app de ejemplo, sigue la [guía de la app de ejemplo](sample-app.md).
+
+Uso del SDK desde una app:
+
+```kotlin
+class MyApplication : Application() {
+    override fun onCreate() {
+        super.onCreate()
+        Fintoc.initialize(
+            context = this,
+            configuration = FintocConfiguration(publicKey = "pk_test_…"),
+        )
+    }
+}
+```
+
+Describe qué mostrar con `FintocWidgetOptions`. Los tokens vienen de tu backend:
+
+```kotlin
+val options = FintocWidgetOptions.Payments(sessionToken = tokenFromYourBackend)
+```
+
+Muestra el Widget desde Compose con `FintocWidget`. Cuando el session token viene de tu backend, pasa un proveedor
+`suspend`: el SDK lo llama una vez por intento y muestra un indicador de progreso mientras espera.
+
+```kotlin
+FintocWidget(
+    sessionTokenProvider = { myBackend.createSessionToken(orderId) },
+    onEvent = { event ->
+        when (event) {
+            is FintocWidgetEvent.Succeeded -> showReceipt()
+            FintocWidgetEvent.Exited -> closeScreen()
+            is FintocWidgetEvent.Occurred -> Unit
+        }
+    },
+    modifier = Modifier.fillMaxSize(),
+)
+```
+
+Si ya tienes las opciones, por ejemplo `Movements`, que no necesita token, pásalas directamente con
+`FintocWidget(options = …, onEvent = …)`. El SDK declara por sí mismo el permiso `INTERNET`, así que tu app no tiene que hacerlo.
+
+Las apps sin Compose abren el Widget en una pantalla propia, con la API de resultados de Activity:
+
+```kotlin
+private val fintocWidget = registerForActivityResult(FintocWidgetContract()) { result ->
+    when (result) {
+        is FintocWidgetResult.Succeeded -> checkThePaymentOnYourBackend()
+        FintocWidgetResult.Exited -> Unit
+    }
+}
+
+fintocWidget.launch(FintocWidgetOptions.Payments(sessionToken = tokenFromYourBackend))
+```
+
+Sin esa API, llama a `FintocWidgetContract().createIntent(…)` y a `parseResult(…)` desde `startActivityForResult`.
+
+Los textos propios del SDK (mensaje de carga, errores, botones) vienen en español, inglés, francés y portugués, y siguen
+el idioma del dispositivo. Para forzar uno, por ejemplo porque tu app tiene su propio selector de idioma:
+
+```kotlin
+FintocConfiguration(publicKey = "pk_test_…", language = FintocLanguage.SPANISH)
+```
+
+La página del Widget es de Fintoc y conserva su propio idioma.
+
+Para enviar al cliente a una página de checkout alojada por Fintoc, abre el `redirect_url` de tu Checkout Session en una
+Custom Tab y lee lo que vuelve a tu app:
+
+```kotlin
+val nonce = UUID.randomUUID().toString() // keep it with the order; send both addresses to your backend
+val checkout = FintocHostedCheckout(
+    successUrl = "https://merchant.com/pay/success?n=$nonce",
+    cancelUrl = "https://merchant.com/pay/cancel?n=$nonce",
+)
+
+checkout.open(this, redirectUrlFromYourBackend)
+
+// In the Activity that receives those addresses, in onCreate and onNewIntent:
+when (checkout.outcomeOf(intent)) {
+    FintocHostedCheckoutOutcome.Succeeded -> showThatTheOrderIsBeingConfirmed()
+    FintocHostedCheckoutOutcome.Cancelled -> showThatThePaymentWasCancelled()
+    FintocHostedCheckoutOutcome.Unrelated -> Unit
+}
+```
+
+La dirección que vuelve es solo una pista: confirma los pagos con los webhooks de Fintoc en tu backend.
+
+## Modelo de seguridad
+
+- La app solo guarda la **llave pública** (`pk_test_` o `pk_live_`). El SDK rechaza las llaves secretas (`sk_…`).
+- Tu backend crea la Checkout Session con su llave secreta y entrega a la app el `session_token` de corta duración; la
+  app se lo pasa al SDK.
+- Los tokens nunca se registran en logs: el `toString()` de cada opción los oculta.
+- El Widget corre en un WebView endurecido: sin acceso a archivos ni a proveedores de contenido, sin subrecursos
+  inseguros, con Safe Browsing activo, sin interfaz JavaScript y sin aceptar nunca errores de certificado. El SDK jamás
+  activa la depuración del WebView.
+- El WebView se queda en los hosts de Fintoc (`webview.fintoc.com`, `wizard.fintoc.com` y `js.fintoc.com`). Los demás
+  enlaces `https`, como el comprobante de pago, se abren en el navegador, y todo lo demás se bloquea.
+- Cuando la página no se puede cargar, el SDK muestra su propio mensaje. La página de error del WebView imprimiría la
+  dirección, y la dirección contiene el session token.
+- La pantalla para apps sin Compose es privada de tu app y se oculta de las capturas de pantalla y de la lista de apps
+  recientes. Los session tokens nunca viajan dentro de un `Intent`.
+- Un checkout alojado solo abre direcciones `https` de un subdominio de `fintoc.com`, en una Custom Tab cuya barra de
+  direcciones siempre es visible. La dirección que vuelve a tu app puede ser falsificada por cualquier app del
+  dispositivo, así que el SDK exige que vuelva también el valor secreto que pusiste en tu propia dirección de regreso.
+- Lo que el Widget informa a la app no es prueba de pago. Confirma los pagos con los webhooks de Fintoc en tu backend.
+
+## Documentación
+
+| Tema | English | Español | Français | Português |
+|---|---|---|---|---|
+| Resumen | [en](../../README.md) | este archivo | [fr](../fr/README.md) | [pt](../pt/README.md) |
+| Arquitectura | [en](../en/architecture.md) | [es](architecture.md) | [fr](../fr/architecture.md) | [pt](../pt/architecture.md) |
+| App de ejemplo | [en](../en/sample-app.md) | [es](sample-app.md) | [fr](../fr/sample-app.md) | [pt](../pt/sample-app.md) |
+| Publicar una versión | [en](../en/releasing.md) | [es](releasing.md) | [fr](../fr/releasing.md) | [pt](../pt/releasing.md) |
+| Registro de cambios | [en](../en/changelog.md) | [es](changelog.md) | [fr](../fr/changelog.md) | [pt](../pt/changelog.md) |
+| Cómo contribuir | [en](../en/contributing.md) | [es](contributing.md) | [fr](../fr/contributing.md) | [pt](../pt/contributing.md) |
+
+## Créditos y licencia
+
+La integración del Widget sigue la [documentación pública de Fintoc](https://docs.fintoc.com) y el comportamiento
+del [SDK de React Native](https://github.com/fintoc-com/fintoc-react-native) oficial. El aviso MIT del cliente Swift de
+la comunidad [sergiocampama/Fintoc](https://github.com/sergiocampama/Fintoc) (© 2021 Sergio Campamá) se conserva en
+[NOTICE](../../NOTICE) por si se agrega código derivado de él.
+
+Este proyecto se distribuye bajo la [licencia Apache 2.0](../../LICENSE).

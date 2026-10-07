@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="sample_title">Exemple du SDK Fintoc</string>
+    <string name="sample_back">Retour</string>
+    <string name="home_intro">Essayez chaque façon d\'utiliser le SDK. Utilisez une clé sandbox (pk_test_…) : rien ici ne déplace de l\'argent réel.</string>
+    <string name="home_placeholder_key_warning">Ce build utilise une clé publique factice : le Widget ne peut donc pas lancer de vrais flux. Ajoutez fintoc.publicKey=pk_test_… à local.properties et recompilez.</string>
+    <string name="home_demos_heading">Démos</string>
+    <string name="demo_movements_title">Connecter un compte bancaire</string>
+    <string name="demo_movements_description">Movements dans un FintocWidget Compose. Il ne nécessite que votre clé publique.</string>
+    <string name="demo_payments_options_title">Payer avec le Widget</string>
+    <string name="demo_payments_options_description">Payments dans un FintocWidget Compose, avec un session token que vous collez.</string>
+    <string name="demo_payments_provider_title">Payer avec un fournisseur de jeton</string>
+    <string name="demo_payments_provider_description">Le SDK demande le session token à un backend simulé, et affiche le chargement et la nouvelle tentative.</string>
+    <string name="demo_payments_activity_title">Payer dans un écran dédié</string>
+    <string name="demo_payments_activity_description">Pour les apps sans Compose : l\'hôte Activity, ouvert avec FintocWidgetContract.</string>
+    <string name="demo_hosted_title">Checkout hébergé</string>
+    <string name="demo_hosted_description">Ouvre une page hébergée par Fintoc dans une Custom Tab et lit ce qui revient.</string>
+    <string name="language_heading">Langue des textes propres au SDK</string>
+    <string name="language_note">Seuls les textes de chargement, d\'erreur et de boutons du SDK changent. La page du Widget garde sa propre langue.</string>
+    <string name="language_automatic">Automatique</string>
+    <string name="token_heading">Session token</string>
+    <string name="token_explanation">Votre backend crée une Checkout Session avec sa clé secrète et vous donne son session_token. Collez-le ici : l\'app ne détient jamais votre clé secrète.</string>
+    <string name="token_field_label">Session token</string>
+    <string name="token_start">Démarrer</string>
+    <string name="token_invalid">Cela ne ressemble pas à un session token. Il ne doit pas être vide, contenir d\'espaces ni être une clé secrète.</string>
+    <string name="token_fail_first">Faire échouer le backend simulé à la première tentative</string>
+    <string name="token_result_succeeded">Dernier résultat : succès</string>
+    <string name="token_result_exited">Dernier résultat : sorti</string>
+    <string name="log_heading">Événements</string>
+    <string name="log_empty">Aucun événement pour l\'instant.</string>
+    <string name="hosted_explanation">Créez une Checkout Session sur votre backend avec ces adresses comme success_url et cancel_url, puis collez son redirect_url ci-dessous.</string>
+    <string name="hosted_copy">Copier</string>
+    <string name="hosted_copy_description">Copier %1$s</string>
+    <string name="hosted_new_secret">Nouvelle valeur secrète</string>
+    <string name="hosted_open">Ouvrir le checkout</string>
+    <string name="hosted_error_untrusted">Ce n\'est pas une adresse https d\'un sous-domaine de fintoc.com.</string>
+    <string name="hosted_error_no_browser">Aucune app de cet appareil ne peut l\'ouvrir.</string>
+    <string name="hosted_outcome_none">Rien n\'est encore revenu.</string>
+    <string name="hosted_outcome_succeeded">L\'adresse de succès est revenue.</string>
+    <string name="hosted_outcome_cancelled">L\'adresse d\'annulation est revenue.</string>
+    <string name="hosted_outcome_unrelated">Une adresse est revenue, mais ce n\'est pas l\'une des vôtres ou il lui manque votre valeur secrète.</string>
+    <string name="hosted_reminder">Un simple indice. Confirmez les paiements avec les webhooks de Fintoc sur votre backend.</string>
+</resources>
