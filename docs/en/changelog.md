@@ -8,7 +8,11 @@ Only what the API documentation lists is public.
 
 ## Unreleased
 
-The first release will be `1.0.0`. It contains:
+Nothing yet.
+
+## 1.0.0 - 2026-10-06
+
+The first release. It contains:
 
 ### Added
 

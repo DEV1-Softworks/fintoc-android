@@ -122,7 +122,7 @@ verdes:
 | Job | O que verifica | O mesmo na sua máquina |
 |---|---|---|
 | Unit tests and coverage | Executa os testes unitários e falha abaixo de 80 % de cobertura. Conta apenas os testes unitários, o que é mais rigoroso que a cobertura combinada da seção 3, então passar aqui significa passar lá. Os pull requests deste repositório recebem também um comentário com a cobertura. | `./gradlew testDebugUnitTest jacocoDebugCoverageReport jacocoDebugCoverageVerification` |
-| Lint and release build | Executa o lint, compila as variantes release e publica em uma pasta local, o que não exige credenciais. Os arquivos da biblioteca ficam anexados à execução. | `./gradlew lintDebug lintRelease assembleRelease :fintoc-sdk:publishToMavenLocal -Dmaven.repo.local=/tmp/fintoc-m2` |
+| Lint and release build | Executa o lint, compila as variantes release e publica em uma pasta local, o que não exige credenciais. As versões de lançamento devem ser assinadas, então o job publica com um nome SNAPSHOT; faça o mesmo com `-PVERSION_NAME=<versão>-SNAPSHOT` em um commit que tenha uma versão de lançamento. Os arquivos da biblioteca ficam anexados à execução. | `./gradlew lintDebug lintRelease assembleRelease :fintoc-sdk:publishToMavenLocal -Dmaven.repo.local=/tmp/fintoc-m2` |
 | Instrumented tests | Executa os testes instrumentados em um emulador do runner (Android 14, API 34). Sua máquina não precisa de um: você executa esses testes em um dispositivo físico. | `./gradlew connectedDebugAndroidTest` |
 
 Os relatórios de cada execução ficam anexados como artefatos, o que ajuda quando um job falha e a causa não está no log.

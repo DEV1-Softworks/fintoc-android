@@ -87,12 +87,18 @@ jobs:
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v6
 
-      # Publishing to a local folder needs no credentials and signs nothing. It builds the AAR, the sources jar, the API
-      # documentation and the POM exactly as a release would.
-      - name: Run lint, build the release variants and publish to a local folder
-        run: >
-          ./gradlew lintDebug lintRelease assembleRelease :fintoc-sdk:publishToMavenLocal
-          -Dmaven.repo.local="$RUNNER_TEMP/fintoc-m2"
+      - name: Run lint and build the release variants
+        run: ./gradlew lintDebug lintRelease assembleRelease
+
+      # The publishing plugin signs every release version, which needs the secrets, and nothing else. So the dry run
+      # publishes the same AAR, sources jar, API documentation and POM to a local folder under a SNAPSHOT name. Signing
+      # is exercised by the release workflow.
+      - name: Publish to a local folder
+        run: |
+          release_version="$(grep '^VERSION_NAME=' gradle.properties | cut -d= -f2)"
+          ./gradlew :fintoc-sdk:publishToMavenLocal \
+            -PVERSION_NAME="${release_version%-SNAPSHOT}-SNAPSHOT" \
+            -Dmaven.repo.local="$RUNNER_TEMP/fintoc-m2"
 
       - name: Upload lint reports
         if: always()

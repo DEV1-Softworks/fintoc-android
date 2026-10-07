@@ -119,7 +119,7 @@ them. Three jobs run in parallel, and a pull request is ready to merge only when
 | Job | What it checks | The same on your machine |
 |---|---|---|
 | Unit tests and coverage | Runs the unit tests and fails below 80% coverage. It counts the unit tests alone, which is stricter than the merged coverage of section 3, so passing here means passing there. Pull requests from this repository also get a comment with the coverage. | `./gradlew testDebugUnitTest jacocoDebugCoverageReport jacocoDebugCoverageVerification` |
-| Lint and release build | Runs lint, builds the release variants and publishes to a local folder, which needs no credentials. The library files are attached to the run. | `./gradlew lintDebug lintRelease assembleRelease :fintoc-sdk:publishToMavenLocal -Dmaven.repo.local=/tmp/fintoc-m2` |
+| Lint and release build | Runs lint, builds the release variants and publishes to a local folder, which needs no credentials. Release versions must be signed, so the job publishes under a SNAPSHOT name; do the same with `-PVERSION_NAME=<version>-SNAPSHOT` on a commit that has a release version. The library files are attached to the run. | `./gradlew lintDebug lintRelease assembleRelease :fintoc-sdk:publishToMavenLocal -Dmaven.repo.local=/tmp/fintoc-m2` |
 | Instrumented tests | Runs the instrumented tests on an emulator of the runner (Android 14, API 34). Your machine does not need one: you run these tests on a physical device. | `./gradlew connectedDebugAndroidTest` |
 
 The reports of each run are attached to it as artifacts, which helps when a job fails and the cause is not in the log.

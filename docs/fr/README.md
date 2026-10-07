@@ -9,11 +9,10 @@ Fintoc, est conçu avec Compose en priorité et utilise Koin pour l'injection de
 > **Aucune affiliation avec Fintoc.** Il s'agit d'un projet communautaire. « Fintoc » est une marque appartenant à ses
 > propriétaires respectifs.
 
-> **État : en développement.** Le build, le conteneur d'injection de dépendances, la chaîne de tests, l'application
-> d'exemple, la configuration du Widget (validation de la clé publique, options par produit et constructeur d'URL) et
-> l'analyseur d'événements du Widget, le `FintocWidget` de Compose, l'hôte Activity pour les apps sans Compose, le
-> changement manuel de langue, les contrôles d'accessibilité, le checkout hébergé et l'application d'exemple complète
-> sont en place, et la publication sur Maven Central est configurée. La première version reste à venir.
+> **État : prête pour la 1.0.0.** Tout ce qui était prévu pour la première version est en place : le Widget pour Compose
+> et un hôte Activity pour les apps sans Compose, le checkout hébergé, quatre langues avec changement manuel, des
+> contrôles d'accessibilité, une application d'exemple et la publication sur Maven Central. La première version est la
+> `1.0.0` et elle n'est pas encore publiée : voir [Installation](#installation).
 
 ## Modules
 

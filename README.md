@@ -8,11 +8,10 @@ for dependency injection.
 
 > **Not affiliated with Fintoc.** This is a community project. "Fintoc" is a trademark of its respective owners.
 
-> **Status: in development.** The build, the dependency-injection container, the test pipeline, the sample app and the
-> Widget configuration (public key check, options per product and URL builder), the Widget event parser, the Compose
-> `FintocWidget`, the Activity host for apps without Compose, the language override, the accessibility checks, the
-> hosted checkout and the full sample app are in place, and publishing to Maven Central is set up. The first release is
-> still to come.
+> **Status: ready for 1.0.0.** Everything planned for the first release is in place: the Widget for Compose and an
+> Activity host for apps without Compose, the hosted checkout, four languages with a manual override, accessibility
+> checks, a sample app and publishing to Maven Central. The first release is `1.0.0`, and it is not published yet: see
+> [Installation](#installation).
 
 ## Modules
 

@@ -130,11 +130,13 @@ Cela signe, envoie et publie sans la confirmation manuelle. Pour regarder d'abor
 
 ## Essai à blanc
 
-Publier dans un dossier local ne demande aucun identifiant et ne signe rien : on peut donc l'essayer à tout moment. Cela
-montre exactement ce qui serait envoyé :
+Publier dans un dossier local ne demande aucun identifiant : on peut donc l'essayer à tout moment. Cela montre
+exactement ce qui serait envoyé, sauf les signatures : le plugin de publication signe chaque version de publication et
+rien d'autre, donc sur un commit qui porte déjà la version de publication, l'essai à blanc utilise un nom SNAPSHOT pour
+elle (sans cela, la compilation s'arrête avec « no configured signatory ») :
 
 ```bash
-./gradlew :fintoc-sdk:publishToMavenLocal -Dmaven.repo.local=/tmp/fintoc-m2
+./gradlew :fintoc-sdk:publishToMavenLocal -PVERSION_NAME=<version>-SNAPSHOT -Dmaven.repo.local=/tmp/fintoc-m2
 ```
 
 Vérifiez ensuite ce que voit un consommateur : créez une app vide avec `compileSdk 37`, faites pointer ses dépôts vers ce
@@ -145,8 +147,8 @@ dossier et ajoutez la bibliothèque. Trois vérifications valent le coup :
   être celle de l'app, pas celle de ce build.
 - **Le manifeste fusionne.** Le manifeste fusionné de l'app contient la permission `INTERNET` et l'Activity du SDK.
 
-Pour vérifier les signatures avec une clé jetable, définissez `signingInMemoryKey` avec une clé de test dans la même
-commande, et vérifiez chaque `.asc` avec `gpg --verify`.
+Pour vérifier aussi les signatures, laissez `VERSION_NAME` tel quel, définissez `signingInMemoryKey` avec une clé jetable
+dans la même commande, et vérifiez chaque `.asc` avec `gpg --verify`.
 
 ## Si le portail refuse l'envoi
 

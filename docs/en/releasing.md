@@ -127,11 +127,13 @@ This signs, uploads and releases without the manual confirmation. To look at the
 
 ## Dry run
 
-Publishing to a local folder needs no credentials and signs nothing, so it is safe to try at any time. It shows exactly
-what would be uploaded:
+Publishing to a local folder needs no credentials, so it is safe to try at any time. It shows exactly what would be
+uploaded, except the signatures: the publishing plugin signs every release version and nothing else, so on a commit that
+has the release version the dry run uses a SNAPSHOT name for it (without that, the build stops with "no configured
+signatory"):
 
 ```bash
-./gradlew :fintoc-sdk:publishToMavenLocal -Dmaven.repo.local=/tmp/fintoc-m2
+./gradlew :fintoc-sdk:publishToMavenLocal -PVERSION_NAME=<version>-SNAPSHOT -Dmaven.repo.local=/tmp/fintoc-m2
 ```
 
 Then check what a consumer sees: create an empty app with `compileSdk 37`, point its repositories at that folder and
@@ -142,8 +144,8 @@ add the library. Three checks are worth the time:
   of the app, not the one of this build.
 - **The manifest merges.** The merged manifest of the app has the `INTERNET` permission and the SDK's Activity.
 
-To check signatures with a throwaway key, set `signingInMemoryKey` for a test key in the same command, and verify each
-`.asc` with `gpg --verify`.
+To check the signatures too, leave `VERSION_NAME` as it is, set `signingInMemoryKey` for a throwaway key in the same
+command, and verify each `.asc` with `gpg --verify`.
 
 ## If the portal rejects the upload
 

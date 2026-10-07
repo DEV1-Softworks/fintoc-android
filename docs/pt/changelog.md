@@ -8,7 +8,11 @@ mudança que quebre a API pública sobe a versão maior. Só é pública o que a
 
 ## Unreleased
 
-A primeira versão será a `1.0.0`. Ela contém:
+Nada ainda.
+
+## 1.0.0 - 2026-10-06
+
+A primeira versão. Ela contém:
 
 ### Adicionado
 

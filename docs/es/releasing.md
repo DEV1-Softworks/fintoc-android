@@ -128,11 +128,13 @@ Esto firma, sube y libera sin la confirmación manual. Para ver antes la subida 
 
 ## Prueba en seco
 
-Publicar en una carpeta local no necesita credenciales y no firma nada, así que es seguro hacerlo en cualquier momento.
-Muestra exactamente qué se subiría:
+Publicar en una carpeta local no necesita credenciales, así que es seguro hacerlo en cualquier momento. Muestra
+exactamente qué se subiría, salvo las firmas: el plugin de publicación firma todas las versiones de lanzamiento y nada
+más, así que en un commit que ya tiene la versión de lanzamiento la prueba en seco usa un nombre SNAPSHOT para ella (sin
+eso, la compilación se detiene con «no configured signatory»):
 
 ```bash
-./gradlew :fintoc-sdk:publishToMavenLocal -Dmaven.repo.local=/tmp/fintoc-m2
+./gradlew :fintoc-sdk:publishToMavenLocal -PVERSION_NAME=<version>-SNAPSHOT -Dmaven.repo.local=/tmp/fintoc-m2
 ```
 
 Después comprueba lo que ve un consumidor: crea una app vacía con `compileSdk 37`, apunta sus repositorios a esa carpeta y
@@ -143,8 +145,8 @@ agrega la librería. Vale la pena hacer tres comprobaciones:
   de la app, no la de este build.
 - **El manifiesto se fusiona.** El manifiesto fusionado de la app tiene el permiso `INTERNET` y la Activity del SDK.
 
-Para comprobar las firmas con una llave desechable, define `signingInMemoryKey` con una llave de prueba en el mismo comando,
-y verifica cada `.asc` con `gpg --verify`.
+Para comprobar también las firmas, deja `VERSION_NAME` como está, define `signingInMemoryKey` con una llave desechable en
+el mismo comando, y verifica cada `.asc` con `gpg --verify`.
 
 ## Si el portal rechaza la subida
 

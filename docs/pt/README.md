@@ -8,11 +8,10 @@ construído com Compose como primeira opção e usa Koin para injeção de depen
 
 > **Sem afiliação com a Fintoc.** É um projeto da comunidade. «Fintoc» é uma marca de seus respectivos proprietários.
 
-> **Status: em desenvolvimento.** O build, o contêiner de injeção de dependências, o pipeline de testes, o app de
-> exemplo, a configuração do Widget (validação da chave pública, opções por produto e construtor de URL) e o
-> interpretador de eventos do Widget, o `FintocWidget` do Compose, o host com Activity para apps sem Compose, a troca
-> manual de idioma, as verificações de acessibilidade, o checkout hospedado e o app de exemplo completo já estão
-> prontos, e a publicação no Maven Central está configurada. A primeira versão ainda está por vir.
+> **Status: pronta para a 1.0.0.** Tudo o que estava previsto para a primeira versão está pronto: o Widget para Compose
+> e um host com Activity para apps sem Compose, o checkout hospedado, quatro idiomas com troca manual, verificações de
+> acessibilidade, um app de exemplo e a publicação no Maven Central. A primeira versão é a `1.0.0` e ainda não está
+> publicada: veja [Instalação](#instalação).
 
 ## Módulos
 

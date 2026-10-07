@@ -128,11 +128,13 @@ pressione Publish lá.
 
 ## Ensaio
 
-Publicar em uma pasta local não precisa de credenciais e não assina nada, então é seguro fazer a qualquer momento. Mostra
-exatamente o que seria enviado:
+Publicar em uma pasta local não precisa de credenciais, então é seguro fazer a qualquer momento. Mostra exatamente o que
+seria enviado, exceto as assinaturas: o plugin de publicação assina todas as versões de lançamento e nada mais, então em
+um commit que já tem a versão de lançamento o ensaio usa um nome SNAPSHOT para ela (sem isso, o build para com «no
+configured signatory»):
 
 ```bash
-./gradlew :fintoc-sdk:publishToMavenLocal -Dmaven.repo.local=/tmp/fintoc-m2
+./gradlew :fintoc-sdk:publishToMavenLocal -PVERSION_NAME=<version>-SNAPSHOT -Dmaven.repo.local=/tmp/fintoc-m2
 ```
 
 Depois verifique o que um consumidor vê: crie um app vazio com `compileSdk 37`, aponte seus repositórios para essa pasta e
@@ -143,8 +145,8 @@ adicione a biblioteca. Três verificações valem o tempo:
   do app, não a deste build.
 - **O manifesto se funde.** O manifesto fundido do app tem a permissão `INTERNET` e a Activity do SDK.
 
-Para verificar as assinaturas com uma chave descartável, defina `signingInMemoryKey` com uma chave de teste no mesmo
-comando, e verifique cada `.asc` com `gpg --verify`.
+Para verificar também as assinaturas, deixe `VERSION_NAME` como está, defina `signingInMemoryKey` com uma chave descartável
+no mesmo comando, e verifique cada `.asc` com `gpg --verify`.
 
 ## Se o portal recusar o envio
 
