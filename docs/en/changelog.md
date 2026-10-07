@@ -3,12 +3,12 @@
 [Español](../es/changelog.md) · [Français](../fr/changelog.md) · [Português](../pt/changelog.md) · [Back to README](../../README.md)
 
 All notable changes are listed here, newest first. The format follows [Keep a Changelog](https://keepachangelog.com), and the
-project follows [Semantic Versioning](https://semver.org). While the major version is 0, a minor version may change the
-public API.
+project follows [Semantic Versioning](https://semver.org). A change that breaks the public API raises the major version.
+Only what the API documentation lists is public.
 
 ## Unreleased
 
-The first release will be `0.1.0`. It contains:
+The first release will be `1.0.0`. It contains:
 
 ### Added
 

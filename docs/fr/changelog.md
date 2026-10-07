@@ -3,12 +3,12 @@
 [English](../en/changelog.md) · [Español](../es/changelog.md) · [Português](../pt/changelog.md) · [Retour au README](../../README.md)
 
 Toutes les modifications notables sont listées ici, de la plus récente à la plus ancienne. Le format suit
-[Keep a Changelog](https://keepachangelog.com), et le projet suit le [Versionnage sémantique](https://semver.org). Tant que la
-version majeure est 0, une version mineure peut changer l'API publique.
+[Keep a Changelog](https://keepachangelog.com), et le projet suit le [Versionnage sémantique](https://semver.org). Un
+changement qui casse l'API publique augmente la version majeure. Seul ce que liste la documentation de l'API est public.
 
 ## Unreleased
 
-La première version sera la `0.1.0`. Elle contient :
+La première version sera la `1.0.0`. Elle contient :
 
 ### Ajouté
 
