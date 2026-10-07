@@ -33,16 +33,8 @@ signingInMemoryKey=<armored secret key, on one line or with \n for the line brea
 signingInMemoryKeyPassword=<password of the key>
 ```
 
-Em um servidor de CI use os mesmos nomes como variáveis de ambiente com o prefixo `ORG_```kotlin
-dependencies {
-    implementation("mx.dev1.fintoc:fintoc-sdk:<version>")
-}
-```_PROJECT_`, por exemplo
-`ORG_```kotlin
-dependencies {
-    implementation("mx.dev1.fintoc:fintoc-sdk:<version>")
-}
-```_PROJECT_mavenCentralUsername`.
+Em um servidor de CI use os mesmos nomes como variáveis de ambiente com o prefixo `ORG_GRADLE_PROJECT_`, por exemplo
+`ORG_GRADLE_PROJECT_mavenCentralUsername`.
 
 ## Versionamento
 
@@ -64,16 +56,65 @@ Seguem o Git flow deste projeto, em que `master` é produção.
    `./gradlew testDebugUnitTest connectedDebugAndroidTest jacocoDebugCoverageReport jacocoDebugCoverageVerification lintDebug lintRelease assembleRelease`.
 4. Faça um [ensaio](#ensaio) e corrija o que ele mostrar.
 5. Abra um pull request de `release/<versão>` para `master`, e faça o merge.
-6. Em `master`, marque o commit com a tag `v<versão>` e envie a tag.
-7. Publique. Isso envia, assina e libera:
+6. Em `master`, marque o commit com `v<versão>` e envie a tag: `git tag v<versão> && git push origin v<versão>`. Isso
+   inicia o [fluxo de publicação](#publicação-automática), que testa, assina, envia e cria o release do GitHub.
+7. Quando o fluxo terminar, abra o [Central Portal](https://central.sonatype.com), vá em Publish e depois em Deployments,
+   espere a validação passar e pressione **Publish**. Nada é público antes disso.
+8. Faça o merge de `master` de volta em `develop` com um pull request que ponha `VERSION_NAME` no próximo `-SNAPSHOT`.
+9. O fluxo já criou o release do GitHub, com notas geradas. Cole nele as notas do registro de mudanças se preferir.
+
+## Publicação automática
+
+`.github/workflows/cd.yml` publica uma versão quando uma tag que começa com `v` é enviada. Ele também pode ser iniciado à mão
+na aba Actions, para publicar de novo a versão de `gradle.properties` depois de uma falha.
+
+```mermaid
+flowchart LR
+    A[Push tag v1.0.0] --> B[Unit tests and coverage gate]
+    B --> C[Version check]
+    C --> D[Sign and upload to the Central Portal]
+    D --> E[A maintainer presses Publish in the portal]
+    D --> F[GitHub release with generated notes]
+```
+
+1. **Primeiro os testes.** A publicação é bloqueada a menos que os testes unitários passem e a cobertura seja de pelo menos
+   80 %.
+2. **Verificação da versão.** A execução falha se `VERSION_NAME` terminar em `-SNAPSHOT`, ou se a tag não for `v` mais
+   `VERSION_NAME`, então uma tag errada não pode sair.
+3. **Envio assinado.** `./gradlew :fintoc-sdk:publishToMavenCentral` assina os arquivos e os envia ao Central Portal como
+   um deployment. A compilação começa do zero, sem cache do Gradle.
+4. **Confirmação manual.** Nada se torna público sozinho: uma pessoa mantenedora pressiona **Publish** no deployment
+   validado do portal. O resumo da execução lembra você.
+5. **Release do GitHub.** O fluxo cria o release da tag com notas geradas. Uma versão com sufixo, como `1.1.0-rc.1`, é
+   marcada como pré-release.
+
+As credenciais são segredos do repositório (Settings, Secrets and variables, Actions), com os mesmos nomes dos do
+[openpay-android](https://github.com/DEV1-Softworks/openpay-android):
+
+| Segredo | O que contém | Propriedade do Gradle em que se transforma |
+|---|---|---|
+| `MAVEN_REPOSITORY_USERNAME` | O usuário do token de usuário do Central Portal. | `mavenCentralUsername` |
+| `MAVEN_REPOSITORY_PASSWORD` | A senha do token de usuário do Central Portal. | `mavenCentralPassword` |
+| `SIGNING_KEY` | A chave privada no formato armored: `gpg --export-secret-keys --armor <id da chave>`. | `signingInMemoryKey` |
+| `SIGNING_PASSWORD` | A senha dessa chave. | `signingInMemoryKeyPassword` |
+
+Se uma execução falhar:
+
+- **Antes do envio** (os testes ou a verificação da versão): nada foi publicado. Corrija a causa e, se o commit mudar,
+  apague a tag (`git push --delete origin v<versão>` e `git tag -d v<versão>`) e marque de novo.
+- **Durante ou depois do envio:** veja o deployment no portal. Um deployment recusado pode ser descartado lá e a mesma
+  versão enviada de novo. Uma versão que foi publicada nunca mais pode ser enviada: corrija o problema com uma versão nova.
+
+## Publicação manual
+
+Se o fluxo não estiver disponível, publique da sua máquina com as credenciais do seu `gradle.properties`:
 
 ```bash
 ./gradlew :fintoc-sdk:publishAndReleaseToMavenCentral
 ```
 
-   Para ver o envio no portal antes de sair, execute `publishToMavenCentral` e clique em Publish lá.
-8. Faça o merge de `master` de volta em `develop` com um pull request que ponha `VERSION_NAME` no próximo `-SNAPSHOT`.
-9. Crie um release do GitHub a partir da tag, com as notas do registro de mudanças.
+Isso assina, envia e libera sem a confirmação manual. Para ver o envio no portal antes, execute `publishToMavenCentral` e
+pressione Publish lá.
 
 ## O que é publicado
 
