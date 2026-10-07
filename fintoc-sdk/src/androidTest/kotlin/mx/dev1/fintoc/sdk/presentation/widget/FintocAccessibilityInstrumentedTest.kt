@@ -96,6 +96,46 @@ class FintocAccessibilityInstrumentedTest {
     }
 
     @Test
+    fun missingWebViewViewPassesTheChecks() {
+        composeRule.setContent {
+            FintocWidgetHostTheme { FintocWidgetFailure(strings, onRetry = {}, messageId = MISSING_WEBVIEW) }
+        }
+
+        assertNoAccessibilityErrors()
+    }
+
+    @Test
+    fun missingWebViewViewPassesTheChecksAtTheLargestFontAndDisplaySizes() {
+        composeRule.setContent {
+            FintocWidgetHostTheme {
+                AtLargestAccessibilitySizes { FintocWidgetFailure(strings, onRetry = {}, messageId = MISSING_WEBVIEW) }
+            }
+        }
+
+        assertNoAccessibilityErrors()
+    }
+
+    @Test
+    fun theMissingWebViewMessageIsAnnouncedAndItsRetryButtonStaysReachableOnASmallScreen() {
+        composeRule.setContent {
+            FintocWidgetHostTheme {
+                val density = LocalDensity.current.density
+                CompositionLocalProvider(LocalDensity provides Density(density, fontScale = EXTREME_FONT_SCALE)) {
+                    Box(Modifier.size(width = 240.dp, height = 220.dp)) {
+                        FintocWidgetFailure(strings, onRetry = {}, messageId = MISSING_WEBVIEW)
+                    }
+                }
+            }
+        }
+
+        composeRule.onNodeWithText(strings.get(MISSING_WEBVIEW))
+            .assert(SemanticsMatcher.keyIsDefined(SemanticsProperties.LiveRegion))
+        composeRule.onNodeWithText(strings.get(R.string.fintoc_widget_error_retry))
+            .performScrollTo()
+            .assertIsDisplayed()
+    }
+
+    @Test
     fun loadingViewPassesTheChecksAndIsAnnouncedToScreenReaders() {
         composeRule.setContent { FintocWidgetHostTheme { FintocWidgetLoading(strings) } }
 
@@ -167,6 +207,8 @@ class FintocAccessibilityInstrumentedTest {
     }
 
     private companion object {
+        // Not a const: the id of a resource is only known at run time, and a const would freeze it at 0.
+        val MISSING_WEBVIEW = R.string.fintoc_widget_error_webview_unavailable
         const val MINIMUM_TOUCH_TARGET_DP = 48
         const val LARGE_FONT_SCALE = 2f
         const val EXTREME_FONT_SCALE = 3f

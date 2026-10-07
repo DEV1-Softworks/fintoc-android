@@ -175,6 +175,10 @@ What the user sees:
 - If the page cannot be loaded, the WebView is removed and a message with a "Try again" button replaces it. That
   covers network errors, HTTP errors of the page itself, certificate problems with a Fintoc host and, on Android 8.0
   and newer, a crashed WebView renderer, which would otherwise close your app. Tapping the button creates a fresh WebView.
+- If the device cannot create a WebView at all, which happens when Android System WebView is not installed, is
+  disabled or is being updated, Android throws from the constructor and an app that calls it unguarded crashes. The SDK
+  catches that, shows a message that names what is missing, and keeps the "Try again" button, because the user may fix
+  it and come back. The same goes for a WebView that fails while it is being set up: it is freed first.
 - The messages come in English, Spanish, French and Portuguese, following the language of the device.
 
 The `sessionTokenProvider` overload is for payments. Fintoc session tokens belong to one payment attempt, so the SDK
@@ -365,6 +369,7 @@ What lives in the container, and why:
 | `coreModule` | `FintocConfiguration` | `single` | The settings given to `Fintoc.initialize`. |
 | `widgetModule` | `FintocWidgetRequests` | `single`, with `onClose` | Holds the session tokens of the screens of the Activity host. It is cleared when the container closes, so `Fintoc.shutdown()`, or initializing again, forgets every token. |
 | `widgetModule` | `ExternalLinkLauncher` | `factory` | Needs the context the Widget is shown in, so it is created with `parametersOf(context)`. |
+| `widgetModule` | `FintocWebViewFactory` | `factory` | Creates the WebView. Android decides whether a device can have one, so tests replace this definition to make creation fail. |
 
 The rule: **the container owns what has state or depends on Android.** Pure functions with nothing to release, such as
 `FintocWidgetUrlBuilder`, `FintocWidgetNavigationPolicy` and `FintocWidgetRedirectParser`, stay plain Kotlin objects:

@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
 import android.net.Uri
+import android.util.AndroidRuntimeException
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebSettings
@@ -202,6 +203,23 @@ class FintocWidgetWebViewInstrumentedTest {
         composeRule.onNodeWithText(context.getString(R.string.fintoc_widget_error_message)).assertIsDisplayed()
         composeRule.onNodeWithText(context.getString(R.string.fintoc_widget_error_retry)).assertIsDisplayed()
         composeRule.runOnUiThread { assertNull("The WebView must be gone", findWebView()) }
+    }
+
+    @Test
+    fun aDeviceWithoutAWebViewShowsTheMessageInsteadOfCrashing() {
+        composeRule.setContent {
+            FintocWidgetWebView(
+                url = pageWithScript(""),
+                onEvent = { event -> events += event },
+                externalLinkLauncher = { link -> openedLinks += link },
+                webViewFactory = { throw AndroidRuntimeException("No WebView provider is installed.") },
+            )
+        }
+
+        composeRule.onNodeWithText(context.getString(R.string.fintoc_widget_error_webview_unavailable))
+            .assertIsDisplayed()
+        composeRule.onNodeWithText(context.getString(R.string.fintoc_widget_error_retry)).assertIsDisplayed()
+        composeRule.runOnUiThread { assertNull("There is no WebView to show", findWebView()) }
     }
 
     private fun isDisplayingText(text: String): Boolean =

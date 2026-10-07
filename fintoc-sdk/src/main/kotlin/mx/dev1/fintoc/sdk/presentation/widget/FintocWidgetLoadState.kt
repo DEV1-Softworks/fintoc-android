@@ -10,4 +10,7 @@ internal enum class FintocWidgetLoadState {
 
     /** The page could not be loaded, or the WebView's renderer died. */
     FAILED,
+
+    /** The device cannot create a WebView at all, usually because no WebView provider is installed or enabled. */
+    UNAVAILABLE,
 }

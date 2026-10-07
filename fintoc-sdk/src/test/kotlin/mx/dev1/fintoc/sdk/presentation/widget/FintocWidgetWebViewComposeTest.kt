@@ -2,6 +2,7 @@ package mx.dev1.fintoc.sdk.presentation.widget
 
 import android.content.Context
 import android.net.Uri
+import android.util.AndroidRuntimeException
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.WebResourceRequest
@@ -205,6 +206,108 @@ class FintocWidgetWebViewComposeTest {
         assertTrue(firstEvents.isEmpty())
         assertEquals(listOf<FintocWidgetEvent>(FintocWidgetEvent.Exited), secondEvents)
         assertEquals(firstWebView, webView())
+    }
+
+    private fun unavailableFactory(creationAttempts: MutableList<Context>? = null) = FintocWebViewFactory { context ->
+        creationAttempts?.add(context)
+        throw AndroidRuntimeException("No WebView provider is installed.")
+    }
+
+    private fun showWidgetWith(webViewFactory: FintocWebViewFactory) {
+        composeRule.setContent {
+            FintocWidgetWebView(
+                url = WIDGET_URL,
+                onEvent = { event -> events += event },
+                externalLinkLauncher = { link -> openedLinks += link },
+                webViewFactory = webViewFactory,
+            )
+        }
+    }
+
+    @Test
+    fun `a device that cannot create a webview shows what is missing instead of crashing`() {
+        showWidgetWith(unavailableFactory())
+
+        composeRule.onNodeWithText(string(R.string.fintoc_widget_error_webview_unavailable)).assertIsDisplayed()
+        composeRule.onNodeWithText(string(R.string.fintoc_widget_error_retry)).assertIsDisplayed()
+        composeRule.onNodeWithText(string(R.string.fintoc_widget_error_message)).assertDoesNotExist()
+        composeRule.onNodeWithContentDescription(string(R.string.fintoc_widget_loading)).assertDoesNotExist()
+        composeRule.runOnIdle { assertNull(findWebView()) }
+    }
+
+    @Test
+    fun `trying again asks the device for a webview again and still explains when there is none`() {
+        val creationAttempts = mutableListOf<Context>()
+        showWidgetWith(unavailableFactory(creationAttempts))
+
+        composeRule.onNodeWithText(string(R.string.fintoc_widget_error_retry)).performClick()
+
+        composeRule.onNodeWithText(string(R.string.fintoc_widget_error_webview_unavailable)).assertIsDisplayed()
+        assertEquals(2, creationAttempts.size)
+    }
+
+    @Test
+    fun `the widget loads once the webview provider is back`() {
+        var isProviderInstalled = false
+        showWidgetWith { context ->
+            if (isProviderInstalled) WebView(context) else throw AndroidRuntimeException("No WebView provider.")
+        }
+        composeRule.onNodeWithText(string(R.string.fintoc_widget_error_webview_unavailable)).assertIsDisplayed()
+
+        isProviderInstalled = true
+        composeRule.onNodeWithText(string(R.string.fintoc_widget_error_retry)).performClick()
+
+        composeRule.onNodeWithText(string(R.string.fintoc_widget_error_webview_unavailable)).assertDoesNotExist()
+        composeRule.onNodeWithContentDescription(string(R.string.fintoc_widget_loading)).assertIsDisplayed()
+        composeRule.runOnIdle { assertEquals(WIDGET_URL, shadowOf(webView()).lastLoadedUrl) }
+    }
+
+    @Test
+    fun `a webview that breaks while it is being set up is freed and replaced by the message`() {
+        lateinit var brokenWebView: WebView
+        showWidgetWith { context ->
+            object : WebView(context) {
+                override fun loadUrl(url: String) = throw IllegalStateException("The provider died while loading.")
+            }.also { createdWebView -> brokenWebView = createdWebView }
+        }
+
+        composeRule.onNodeWithText(string(R.string.fintoc_widget_error_webview_unavailable)).assertIsDisplayed()
+        composeRule.runOnIdle {
+            assertNull(findWebView())
+            assertTrue(shadowOf(brokenWebView).wasDestroyCalled())
+        }
+    }
+
+    @Test
+    fun `a webview is destroyed exactly once when the widget leaves the screen`() {
+        var destroyCalls = 0
+        var isShown by mutableStateOf(true)
+        composeRule.setContent {
+            if (isShown) {
+                FintocWidgetWebView(
+                    url = WIDGET_URL,
+                    onEvent = {},
+                    externalLinkLauncher = {},
+                    webViewFactory = { context ->
+                        object : WebView(context) {
+                            override fun destroy() {
+                                destroyCalls += 1
+                                super.destroy()
+                            }
+                        }
+                    },
+                )
+            }
+        }
+        composeRule.runOnIdle { assertNotNull(findWebView()) }
+
+        isShown = false
+        composeRule.waitForIdle()
+
+        composeRule.runOnIdle {
+            assertNull(findWebView())
+            assertEquals(1, destroyCalls)
+        }
     }
 
     private companion object {

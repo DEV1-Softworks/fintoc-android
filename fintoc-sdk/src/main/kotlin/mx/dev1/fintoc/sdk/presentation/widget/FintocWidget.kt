@@ -47,6 +47,8 @@ import org.koin.core.parameter.parametersOf
  *   (`android:configChanges="orientation|screenSize|keyboardHidden"`).
  * - Links that leave Fintoc, such as the payment voucher, open in the browser. The Widget never browses elsewhere.
  * - If the Widget cannot be loaded, it is replaced by a message with a button to try again.
+ * - If the device has no WebView, because Android System WebView is not installed or is disabled, the Widget shows a
+ *   message that says so, with a button to try again. Your app does not crash.
  *
  * @param options What the Widget should do. Each product validates its own data.
  * @param onEvent Receives every event the Widget reports.
@@ -63,6 +65,7 @@ public fun FintocWidget(
     val koin = remember { Fintoc.requireKoin() }
     val configuration = remember(koin) { koin.get<FintocConfiguration>() }
     val externalLinkLauncher = remember(koin, context) { koin.get<ExternalLinkLauncher> { parametersOf(context) } }
+    val webViewFactory = remember(koin) { koin.get<FintocWebViewFactory>() }
     val widgetUrl = remember(configuration, options) { FintocWidgetUrlBuilder.build(configuration.publicKey, options) }
 
     FintocWidgetWebView(
@@ -71,6 +74,7 @@ public fun FintocWidget(
         externalLinkLauncher = externalLinkLauncher,
         modifier = modifier,
         language = configuration.language,
+        webViewFactory = webViewFactory,
     )
 }
 
